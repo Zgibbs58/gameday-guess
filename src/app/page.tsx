@@ -2,9 +2,9 @@ import Image from "next/image";
 import TeamScore from "./components/TeamScore";
 import ScoreBoard from "./components/ScoreBoard";
 
-const players = [
-  // { name: "Scott", score: 73 },
-  // { name: "Scott", score: 65 },
+const players: { name: string; score: number }[] = [
+  { name: "Scott", score: 73 },
+  { name: "Scott", score: 65 },
   // { name: "Scott", score: 55 },
   // { name: "Scott", score: 43 },
   // { name: "Scott", score: 90 },
@@ -20,32 +20,35 @@ export default function Home() {
         <br />
         <span className="text-5xl">Gameday Guess</span>
       </h1>
-      {players.length > 0 || !players ? (
+      {players.length >= 6 ? (
         <ScoreBoard players={players} teamScore={50} />
       ) : (
-        <form className="flex flex-col justify-center gap-2 py-10 text-smokeGray">
-          <input
-            className="border-2 focus:outline-tenOrange rounded-sm"
-            type="text"
-            id="name"
-            placeholder="Enter your name"
-            minLength={2}
-            maxLength={10}
-            required
-          />
-          <input
-            className="border-2 focus:outline-tenOrange rounded-sm"
-            type="number"
-            id="score"
-            placeholder="Enter your guess"
-            min={0}
-            max={400}
-            required
-          />
-          <button className="bg-tenOrange text-white rounded-xl" type="submit">
-            Submit
-          </button>
-        </form>
+        <>
+          <form className="flex flex-col justify-center gap-2 py-10 text-smokeGray">
+            <input
+              className="border-2 focus:outline-tenOrange rounded-sm"
+              type="text"
+              id="name"
+              placeholder="Enter your name"
+              minLength={2}
+              maxLength={10}
+              required
+            />
+            <input
+              className="border-2 focus:outline-tenOrange rounded-sm"
+              type="number"
+              id="score"
+              placeholder="Enter your guess"
+              min={0}
+              max={400}
+              required
+            />
+            <button className="bg-tenOrange text-white rounded-xl" type="submit">
+              Submit
+            </button>
+          </form>
+          <ScoreBoard players={players} teamScore={50} />
+        </>
       )}
       <details className="pt-12">
         <summary>Click for game rules</summary>

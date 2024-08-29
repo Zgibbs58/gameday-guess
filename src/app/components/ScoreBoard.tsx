@@ -18,11 +18,11 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
 
   return (
     <div className="max-w-md mx-auto mt-8">
-      <table className="min-w-full bg-white border border-gray-300">
+      <table className="min-w-full border border-gray-300">
         <thead>
           <tr>
-            <th className="py-2 px-4 bg-gray-100 border-b">Player Name</th>
-            <th className="py-2 px-4 bg-gray-100 border-b">Predicted Score</th>
+            <th className="py-2 px-4 border-b">Player Name</th>
+            <th className="py-2 px-4 border-b">Predicted Score</th>
           </tr>
         </thead>
         <tbody>
