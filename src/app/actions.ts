@@ -23,27 +23,16 @@ export const saveUserAndScore = async (formData: FormData) => {
     user = await prisma.user.create({
       data: {
         name,
+        score,
       },
     });
   }
-
-  // Add the score to the user
-  await prisma.score.create({
-    data: {
-      value: score,
-      userId: user.id,
-    },
-  });
 
   return { message: "Score submitted successfully!" };
 };
 
 export const getPlayersAndScores = async () => {
-  const players = await prisma.user.findMany({
-    include: {
-      scores: true,
-    },
-  });
+  const players = await prisma.user.findMany();
 
   // Flatten the structure if necessary
   interface PlayerData {
@@ -52,9 +41,20 @@ export const getPlayersAndScores = async () => {
   }
 
   const playerData: PlayerData[] = players.map((player) => ({
-    name: player.name || "",
-    score: player.scores.reduce((total, score) => total + score.value, 0),
+    name: player.name,
+    score: player.score,
   }));
 
   return playerData;
+};
+
+export const deleteUserAndScore = async (id: number) => {
+  // Delete the score from the user
+  await prisma.user.delete({
+    where: {
+      id: id,
+    },
+  });
+
+  return { message: "User deleted successfully!" };
 };

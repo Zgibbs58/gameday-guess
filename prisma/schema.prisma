@@ -11,14 +11,7 @@ datasource db {
 }
 
 model User {
-  id     Int     @id @default(autoincrement())
-  name   String?
-  scores Score[]
-}
-
-model Score {
-  id     Int  @id @default(autoincrement())
-  value  Int
-  User   User @relation(fields: [userId], references: [id])
-  userId Int
+  id    Int    @id @default(autoincrement())
+  name  String
+  score Int
 }

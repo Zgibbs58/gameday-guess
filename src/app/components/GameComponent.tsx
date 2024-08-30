@@ -29,7 +29,7 @@ const ParentComponent = () => {
   return (
     <div>
       <UserForm onAddPlayer={handleAddPlayer} />
-      <ScoreBoard players={players} teamScore={50} />
+      <ScoreBoard players={players} teamScore={80} />
     </div>
   );
 };
