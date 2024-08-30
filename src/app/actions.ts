@@ -38,23 +38,54 @@ export const getPlayersAndScores = async () => {
   interface PlayerData {
     name: string;
     score: number;
+    id: number;
   }
 
   const playerData: PlayerData[] = players.map((player) => ({
     name: player.name,
     score: player.score,
+    id: player.id,
   }));
 
   return playerData;
 };
 
 export const deleteUserAndScore = async (id: number) => {
-  // Delete the score from the user
-  await prisma.user.delete({
-    where: {
-      id: id,
+  // Delete the user
+
+  try {
+    await prisma.user.delete({
+      where: {
+        id: id,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to delete item:", error);
+    window.alert("Failed to delete item.");
+  }
+  return { message: "User deleted successfully!" };
+};
+
+export const getTeamScore = async () => {
+  const teamScore = await prisma.teamScore.findFirst({
+    orderBy: {
+      id: "desc", // Order by id in descending order to get the last entered score
     },
   });
 
-  return { message: "User deleted successfully!" };
+  return teamScore?.score || 0; // Return the score or 0 if no score exists
+};
+
+export const updateScore = async (newScore: number) => {
+  if (isNaN(newScore)) {
+    throw new Error("Score must be a valid number.");
+  }
+
+  const teamScore = await prisma.teamScore.create({
+    data: {
+      score: newScore,
+    },
+  });
+
+  return teamScore;
 };

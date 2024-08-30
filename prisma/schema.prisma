@@ -15,3 +15,8 @@ model User {
   name  String
   score Int
 }
+
+model TeamScore {
+  id    Int @id @default(autoincrement())
+  score Int
+}

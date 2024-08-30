@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { saveUserAndScore } from "../actions";
+import React, { use, useState } from "react";
+import { saveUserAndScore, getPlayersAndScores } from "../actions";
 
 interface Player {
   name: string;
@@ -30,7 +30,6 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
       alert(error.message);
     }
   };
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-2 py-10 text-smokeGray">
       <input
@@ -55,7 +54,7 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
         onChange={(e) => setScore(e.target.value)}
         required
       />
-      <button className="bg-tenOrange text-white rounded-xl" type="submit">
+      <button type="submit" className="bg-tenOrange text-white rounded-sm py-2">
         Submit
       </button>
     </form>

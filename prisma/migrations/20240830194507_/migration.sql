@@ -4,3 +4,9 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "score" INTEGER NOT NULL
 );
+
+-- CreateTable
+CREATE TABLE "TeamScore" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "score" INTEGER NOT NULL
+);
