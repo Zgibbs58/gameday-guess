@@ -1,15 +1,9 @@
 import Image from "next/image";
 import TeamScore from "./components/TeamScore";
 import ScoreBoard from "./components/ScoreBoard";
-
-const players: { name: string; score: number }[] = [
-  { name: "Scott", score: 73 },
-  { name: "Scott", score: 65 },
-  // { name: "Scott", score: 55 },
-  // { name: "Scott", score: 43 },
-  // { name: "Scott", score: 90 },
-  // { name: "Scott", score: 30 },
-];
+import UserForm from "./components/UserForm";
+import GameComponent from "./components/GameComponent";
+import { getPlayersAndScores } from "./actions";
 
 export default function Home() {
   return (
@@ -20,39 +14,10 @@ export default function Home() {
         <br />
         <span className="text-5xl">Gameday Guess</span>
       </h1>
-      {players.length >= 6 ? (
-        <ScoreBoard players={players} teamScore={50} />
-      ) : (
-        <>
-          <form className="flex flex-col justify-center gap-2 py-10 text-smokeGray">
-            <input
-              className="border-2 focus:outline-tenOrange rounded-sm"
-              type="text"
-              id="name"
-              placeholder="Enter your name"
-              minLength={2}
-              maxLength={10}
-              required
-            />
-            <input
-              className="border-2 focus:outline-tenOrange rounded-sm"
-              type="number"
-              id="score"
-              placeholder="Enter your guess"
-              min={0}
-              max={400}
-              required
-            />
-            <button className="bg-tenOrange text-white rounded-xl" type="submit">
-              Submit
-            </button>
-          </form>
-          <ScoreBoard players={players} teamScore={50} />
-        </>
-      )}
-      <details className="pt-12">
-        <summary>Click for game rules</summary>
-        <ol className="list-decimal list-inside text-centlefter">
+      <GameComponent />
+      <details className="mt-12 bg-tenOrange text-white p-2 rounded-lg">
+        <summary className="hover:cursor-pointer">Click for game rules</summary>
+        <ol className="list-decimal list-inside text-centlefter mt-2 space-y-2">
           <li>Enter the ammount of points UT will score in this game.</li>
           <li>If UT&apos;s score gets higher than your guess, you lose.</li>
           <li>Closest score still in play at the end wins.</li>
