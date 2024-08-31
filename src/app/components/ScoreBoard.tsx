@@ -42,7 +42,7 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
         <tbody>
           {sortedPlayers.map((player, index) => (
             <tr key={index} className="text-center second-element">
-              {player.score < teamScore ? (
+              {player.score < 66 ? (
                 <>
                   <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">
                     {player.name}
