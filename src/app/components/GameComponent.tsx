@@ -30,7 +30,7 @@ const ParentComponent = () => {
 
   return (
     <div className="flex flex-col gap-12">
-      {players.length < 6 ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
+      {players.length < 8 ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
       <ScoreBoard players={players} teamScore={teamScore} />
       <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
         <h3 className="text-2xl font-bold">UT Volunteers</h3>
