@@ -31,7 +31,7 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
   const sortedPlayers = players.sort((a, b) => b.score - a.score);
 
   return (
-    <div className="max-w-md mx-auto mt-8">
+    <div className=" w-full mx-auto">
       <table className="min-w-full border border-smokeGray dark:border-white">
         <thead className="bg-tenOrange text-white">
           <tr>
@@ -41,16 +41,24 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
         </thead>
         <tbody>
           {sortedPlayers.map((player, index) => (
-            <tr key={index} className="text-center">
+            <tr key={index} className="text-center second-element">
               {player.score < teamScore ? (
-                <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">{player.name} is a LOSER</td>
+                <>
+                  <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">
+                    {player.name}
+                  </td>
+                  <td className="relative py-2 px-4 text-xl font-semibold border-b border-smokeGray dark:border-white bg-red-500 text-white">
+                    {player.score}
+                    <span className="absolute top-1/2 left-2 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-75 pointer-events-none">
+                      Loser
+                    </span>
+                  </td>
+                </>
               ) : (
-                <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">{player.name}</td>
-              )}
-              {player.score < teamScore ? (
-                <td className="py-2 px-4 border-b border-smokeGray dark:border-white bg-red-500 text-white">{player.score}</td>
-              ) : (
-                <td className="py-2 px-4 border-b border-smokeGray dark:border-white">{player.score}</td>
+                <>
+                  <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white">{player.name}</td>
+                  <td className="py-2 px-4 text-xl font-semibold border-b border-smokeGray dark:border-white">{player.score}</td>
+                </>
               )}
             </tr>
           ))}

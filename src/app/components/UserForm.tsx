@@ -31,9 +31,9 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
     }
   };
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-2 py-10 text-smokeGray">
+    <form onSubmit={handleSubmit} className="flex flex-col justify-center gap-2 text-smokeGray">
       <input
-        className="border-2 focus:outline-tenOrange rounded-sm"
+        className="border-2 focus:outline-tenOrange rounded-md p-1"
         type="text"
         name="name"
         placeholder="Enter your name"
@@ -44,7 +44,7 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
         required
       />
       <input
-        className="border-2 focus:outline-tenOrange rounded-sm"
+        className="border-2 focus:outline-tenOrange rounded-md p-1"
         type="number"
         name="score"
         placeholder="Enter your guess"
@@ -54,7 +54,7 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
         onChange={(e) => setScore(e.target.value)}
         required
       />
-      <button type="submit" className="bg-tenOrange text-white rounded-sm py-2">
+      <button type="submit" className="bg-tenOrange text-white rounded-lg py-2">
         Submit
       </button>
     </form>

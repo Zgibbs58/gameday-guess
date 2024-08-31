@@ -7,18 +7,18 @@ import { getPlayersAndScores } from "./actions";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-between">
+    <main className="flex flex-col items-center justify-between pt-6 gap-12">
       {/* <TeamScore /> */}
-      <h1 className="text-3xl font-bold text-tenOrange text-center">
+      <h1 className="text-2xl font-bold text-tenOrange text-center">
         Welcome to
         <br />
-        <span className="text-5xl">Gameday Guess</span>
+        <span className="text-4xl">Gameday Guess</span>
       </h1>
       <GameComponent />
-      <details className="mt-12 bg-tenOrange text-white p-2 rounded-lg">
+      <details className="bg-tenOrange text-white p-2 rounded-lg">
         <summary className="hover:cursor-pointer">Click for game rules</summary>
         <ol className="list-decimal list-inside text-centlefter mt-2 space-y-2">
-          <li>Enter the ammount of points UT will score in this game.</li>
+          <li>Enter the amount of points UT will score in this game.</li>
           <li>If UT&apos;s score gets higher than your guess, you lose.</li>
           <li>Closest score still in play at the end wins.</li>
         </ol>

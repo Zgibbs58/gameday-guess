@@ -9,6 +9,12 @@
   margin: 0 auto;
 }
 
+/* .second-element:nth-child(2) {
+  background-color: #38a169; 
+  color: white;
+  font-weight: bold;
+} */
+
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
