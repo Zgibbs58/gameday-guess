@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import ScoreBoard from "./ScoreBoard";
 import UserForm from "./UserForm"; // Assuming you have a form component
 import { getPlayersAndScores, getTeamScore } from "../actions";
+import Image from "next/image";
 
 interface Player {
   name: string;
@@ -12,6 +13,7 @@ interface Player {
 const ParentComponent = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -19,6 +21,7 @@ const ParentComponent = () => {
       const teamScore = await getTeamScore(); // Assuming this function fetches the team score
       setPlayers(data);
       setTeamScore(teamScore);
+      setLoading(false); // Set loading to false after data is fetched
     };
 
     fetchPlayers();
@@ -27,6 +30,14 @@ const ParentComponent = () => {
   const handleAddPlayer = (newPlayer: Player) => {
     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
   };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <Image className="loading-image" src="/images/gamedayLogo.png" alt="Loading" width={200} height={200} />
+      </div>
+    ); // Display a loading indicator while data is being fetched
+  }
 
   return (
     <div className="flex flex-col gap-12">
