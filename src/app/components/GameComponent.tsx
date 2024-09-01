@@ -31,7 +31,18 @@ const ParentComponent = () => {
   return (
     <div className="flex flex-col gap-12">
       {players.length < 8 ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
-      <ScoreBoard players={players} teamScore={teamScore} />
+      {players.length < 8 ? (
+        <div>
+          <h2 className="text-2xl text-tenOrange text-center">Current Players</h2>
+          <ul className="text-center">
+            {players.map((player, index) => (
+              <li key={index}>{player.name}</li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <ScoreBoard players={players} teamScore={teamScore} />
+      )}
       <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
         <h3 className="text-2xl font-bold">UT Volunteers</h3>
         <h3 className="text-2xl font-bold mb-4">Current Score</h3>
