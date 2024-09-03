@@ -12,12 +12,18 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  score Int
+  id     Int     @id @default(autoincrement())
+  name   String
+  score  Int
+  winner Boolean @default(false)
 }
 
 model TeamScore {
   id    Int @id @default(autoincrement())
-  score Int
+  score Int @default(0)
+}
+
+model TotalPlayers {
+  id    Int @id @default(autoincrement())
+  value Int @default(1)
 }
