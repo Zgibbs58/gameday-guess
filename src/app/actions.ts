@@ -13,6 +13,15 @@ export const saveUserAndScore = async (formData: FormData) => {
     throw new Error("Name and score are required.");
   }
 
+  // Check if the score has already been used
+  const existingUserWithScore = await prisma.user.findFirst({
+    where: { score },
+  });
+
+  if (existingUserWithScore) {
+    throw new Error(`Score ${score} is already in use by another user.`);
+  }
+
   //check if user exists
   let user = await prisma.user.findFirst({
     where: { name },
@@ -27,6 +36,14 @@ export const saveUserAndScore = async (formData: FormData) => {
       },
     });
   }
+  // code to allow user to update their score but also anybody can update their score
+  // else {
+  //   // Update the user's score if they already exist
+  //   await prisma.user.update({
+  //     where: { id: user.id },
+  //     data: { score },
+  //   });
+  // }
 
   return { message: "Score submitted successfully!" };
 };

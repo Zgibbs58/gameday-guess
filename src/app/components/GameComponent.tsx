@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import ScoreBoard from "./ScoreBoard";
+import ScoreBoard from "./PlayerTable";
 import UserForm from "./UserForm"; // Assuming you have a form component
 import { getPlayersAndScores, getTeamScore, getTotalPlayers } from "../actions";
 import Image from "next/image";
@@ -34,6 +34,22 @@ const ParentComponent = () => {
     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
   };
 
+  //If you want to update the score of an existing player, you can use the following code:
+  // const handleAddPlayer = (newPlayer: Player) => {
+  //   setPlayers((prevPlayers) => {
+  //     // Check if the player already exists
+  //     const playerExists = prevPlayers.some((player) => player.name === newPlayer.name);
+
+  //     if (playerExists) {
+  //       // Update the score of the existing player
+  //       return prevPlayers.map((player) => (player.name === newPlayer.name ? { ...player, score: newPlayer.score } : player));
+  //     } else {
+  //       // Add the new player
+  //       return [...prevPlayers, newPlayer];
+  //     }
+  //   });
+  // };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -49,10 +65,14 @@ const ParentComponent = () => {
       {players.length <= totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
       {players.length <= totalPlayers ? (
         <div>
-          <h2 className="text-2xl text-tenOrange text-center">Waiting on {placeholders} More Players</h2>
+          <h2 className="text-2xl text-tenOrange text-center">
+            Waiting on {placeholders} More Player{placeholders > 1 ? "s" : ""}
+          </h2>
           <ul className="text-center">
             {players.map((player, index) => (
-              <li key={index}>{player.name}</li>
+              <li key={index}>
+                <span className="text-tenOrange font-semibold">{player.name}</span> is locked in
+              </li>
             ))}
             {Array.from({ length: placeholders }).map((_, index) => (
               <li key={`placeholder-${index}`}>????</li>

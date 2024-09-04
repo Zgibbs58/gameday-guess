@@ -1,6 +1,6 @@
 import Image from "next/image";
 import TeamScore from "./components/TeamScore";
-import ScoreBoard from "./components/ScoreBoard";
+import ScoreBoard from "./components/PlayerTable";
 import UserForm from "./components/UserForm";
 import GameComponent from "./components/GameComponent";
 import { getPlayersAndScores } from "./actions";
