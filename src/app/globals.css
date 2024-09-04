@@ -9,11 +9,11 @@
   margin: 0 auto;
 }
 
-.second-element:nth-child(1) {
+/* .second-element:nth-child(1) {
   background-color: #38a169;
   color: white;
   font-weight: bold;
-}
+} */
 
 @media (prefers-color-scheme: dark) {
   :root {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { getTeamScore, updateScore } from "../actions"; // Import the server actions
 
-export default function TeamScoreUpdate() {
+export default function PlayerCountUpdate() {
   const [teamScore, setTeamScore] = useState<number>(0);
   const [newScore, setNewScore] = useState<number>(teamScore); // Local state for form input
 
@@ -34,7 +34,8 @@ export default function TeamScoreUpdate() {
   };
 
   return (
-    <>
+    <section className="space-y-4">
+      <h2 className="text-2xl text-tenOrange text-center">Team Score</h2>
       <form className="text-smokeGray flex flex-col" onSubmit={handleSubmit}>
         <input
           className="border-2 focus:outline-tenOrange rounded-sm"
@@ -47,10 +48,10 @@ export default function TeamScoreUpdate() {
           onChange={handleChange}
           required
         />
-        <button className="bg-tenOrange text-white rounded-xl py-2" type="submit">
+        <button className="bg-tenOrange text-white rounded-xl py-2 mt-4" type="submit">
           Submit
         </button>
       </form>
-    </>
+    </section>
   );
 }

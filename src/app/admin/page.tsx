@@ -3,6 +3,7 @@
 import { getPlayersAndScores, deleteUserAndScore } from "../actions";
 import { useState, useEffect, use } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
+import PlayerCountUpdate from "../components/PlayerCountUpdate";
 
 interface Player {
   name: string;
@@ -48,6 +49,7 @@ export default function Page() {
         ))}
       </div>
       <TeamScoreUpdate />
+      <PlayerCountUpdate />
     </div>
   );
 }

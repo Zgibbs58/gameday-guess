@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import ScoreBoard from "./ScoreBoard";
 import UserForm from "./UserForm"; // Assuming you have a form component
-import { getPlayersAndScores, getTeamScore } from "../actions";
+import { getPlayersAndScores, getTeamScore, getTotalPlayers } from "../actions";
 import Image from "next/image";
 
 interface Player {
@@ -18,9 +18,11 @@ const ParentComponent = () => {
 
   useEffect(() => {
     const fetchPlayers = async () => {
-      const data = await getPlayersAndScores(); // Assuming this function fetches players
+      const totalPlayers = await getTotalPlayers(); // Assuming this function fetches the total number of players
+      const playerData = await getPlayersAndScores(); // Assuming this function fetches players
       const teamScore = await getTeamScore(); // Assuming this function fetches the team score
-      setPlayers(data);
+      setTotalPlayers(totalPlayers);
+      setPlayers(playerData);
       setTeamScore(teamScore);
       setLoading(false); // Set loading to false after data is fetched
     };
@@ -40,15 +42,20 @@ const ParentComponent = () => {
     ); // Display a loading indicator while data is being fetched
   }
 
+  const placeholders = totalPlayers - players.length;
+
   return (
     <div className="flex flex-col gap-12">
-      {players.length < 8 ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
-      {players.length < 8 ? (
+      {players.length <= totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
+      {players.length <= totalPlayers ? (
         <div>
-          <h2 className="text-2xl text-tenOrange text-center">Current Players</h2>
+          <h2 className="text-2xl text-tenOrange text-center">Waiting on {placeholders} More Players</h2>
           <ul className="text-center">
             {players.map((player, index) => (
               <li key={index}>{player.name}</li>
+            ))}
+            {Array.from({ length: placeholders }).map((_, index) => (
+              <li key={`placeholder-${index}`}>????</li>
             ))}
           </ul>
         </div>

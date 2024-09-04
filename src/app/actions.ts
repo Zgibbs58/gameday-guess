@@ -67,11 +67,7 @@ export const deleteUserAndScore = async (id: number) => {
 };
 
 export const getTeamScore = async () => {
-  const teamScore = await prisma.teamScore.findFirst({
-    orderBy: {
-      id: "desc", // Order by id in descending order to get the last entered score
-    },
-  });
+  const teamScore = await prisma.teamScore.findFirst();
 
   return teamScore?.score || 0; // Return the score or 0 if no score exists
 };
@@ -108,20 +104,8 @@ export const updateScore = async (newScore: number) => {
   return updatedTeamScore;
 };
 
-// export const deleteTeamScore = async () => {
-//   await prisma.teamScore.deleteMany({});
-
-//   return { message: "Team score deleted successfully!" };
-// };
-
-// deleteTeamScore();
-
 export const getTotalPlayers = async () => {
-  const totalPlayers = await prisma.totalPlayers.findFirst({
-    orderBy: {
-      id: "desc",
-    },
-  });
+  const totalPlayers = await prisma.totalPlayers.findFirst();
 
   return totalPlayers?.value || 0;
 };
@@ -131,11 +115,29 @@ export const updateTotalPlayers = async (totalPlayers: number) => {
     throw new Error("Total players must be a valid number.");
   }
 
-  const updateTotalPlayers = await prisma.totalPlayers.create({
-    data: {
-      value: totalPlayers,
-    },
-  });
+  // Check if there's already a totalPlayers in the database
+  const existingTotalPlayers = await prisma.totalPlayers.findFirst();
 
-  return updateTotalPlayers;
+  let updatedTotalPlayers;
+
+  if (existingTotalPlayers) {
+    // Update the existing totalPlayers
+    updatedTotalPlayers = await prisma.totalPlayers.update({
+      where: {
+        id: existingTotalPlayers.id,
+      },
+      data: {
+        value: totalPlayers,
+      },
+    });
+  } else {
+    // Create a new totalPlayers if none exists
+    updatedTotalPlayers = await prisma.totalPlayers.create({
+      data: {
+        value: totalPlayers,
+      },
+    });
+  }
+
+  return updatedTotalPlayers;
 };
