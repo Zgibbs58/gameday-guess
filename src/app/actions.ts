@@ -81,11 +81,61 @@ export const updateScore = async (newScore: number) => {
     throw new Error("Score must be a valid number.");
   }
 
-  const teamScore = await prisma.teamScore.create({
-    data: {
-      score: newScore,
+  // Check if there's already a score in the database
+  const existingScore = await prisma.teamScore.findFirst();
+
+  let updatedTeamScore;
+
+  if (existingScore) {
+    // Update the existing score
+    updatedTeamScore = await prisma.teamScore.update({
+      where: {
+        id: existingScore.id,
+      },
+      data: {
+        score: newScore,
+      },
+    });
+  } else {
+    // Create a new score if none exists
+    updatedTeamScore = await prisma.teamScore.create({
+      data: {
+        score: newScore,
+      },
+    });
+  }
+
+  return updatedTeamScore;
+};
+
+// export const deleteTeamScore = async () => {
+//   await prisma.teamScore.deleteMany({});
+
+//   return { message: "Team score deleted successfully!" };
+// };
+
+// deleteTeamScore();
+
+export const getTotalPlayers = async () => {
+  const totalPlayers = await prisma.totalPlayers.findFirst({
+    orderBy: {
+      id: "desc",
     },
   });
 
-  return teamScore;
+  return totalPlayers?.value || 0;
+};
+
+export const updateTotalPlayers = async (totalPlayers: number) => {
+  if (isNaN(totalPlayers)) {
+    throw new Error("Total players must be a valid number.");
+  }
+
+  const updateTotalPlayers = await prisma.totalPlayers.create({
+    data: {
+      value: totalPlayers,
+    },
+  });
+
+  return updateTotalPlayers;
 };

@@ -11,6 +11,7 @@ interface Player {
 }
 
 const ParentComponent = () => {
+  const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);

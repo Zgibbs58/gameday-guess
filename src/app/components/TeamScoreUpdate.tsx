@@ -16,14 +16,14 @@ export default function TeamScoreUpdate() {
     };
 
     fetchScore();
-  }, [setTeamScore]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
 
     try {
-      await updateScore(newScore); // Call the server action to update the score
-      setTeamScore(newScore); // Update the global team score
+      const updatedScore = await updateScore(newScore); // Call the server action to update the score
+      setTeamScore(updatedScore.score); // Update the global team score
     } catch (error) {
       console.error("Failed to update score:", error);
     }
