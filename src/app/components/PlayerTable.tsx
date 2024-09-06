@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getPlayersAndScores } from "../actions";
+import Confetti from "react-confetti";
 
 interface Player {
   name: string;
@@ -19,21 +20,26 @@ interface TeamScoreProps {
 }
 
 const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, teamScore, winner }) => {
-  // const [players, setPlayers] = React.useState<Player[]>([]); // This is the initial state of the players
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  // useEffect(() => {
-  //   const fetchPlayers = async () => {
-  //     const data = await getPlayersAndScores();
-  //     setPlayers(data);
-  //   };
+  useEffect(() => {
+    if (players.some((player) => player.winner)) {
+      setShowConfetti(true);
 
-  //   fetchPlayers();
-  // }, []);
+      // Stop confetti after 5 seconds
+      const confettiTimeout = setTimeout(() => {
+        setShowConfetti(false);
+      }, 5000);
+
+      return () => clearTimeout(confettiTimeout);
+    }
+  }, [players]);
 
   const sortedPlayers = players.sort((a, b) => b.score - a.score);
 
   return (
     <div className=" w-full mx-auto">
+      {showConfetti && <Confetti />}
       <table className="min-w-full border border-smokeGray dark:border-white">
         <thead className="bg-tenOrange text-white">
           <tr>
