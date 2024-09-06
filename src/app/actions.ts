@@ -56,12 +56,14 @@ export const getPlayersAndScores = async () => {
     name: string;
     score: number;
     id: number;
+    winner?: boolean;
   }
 
   const playerData: PlayerData[] = players.map((player) => ({
     name: player.name,
     score: player.score,
     id: player.id,
+    winner: player.winner,
   }));
 
   return playerData;
@@ -157,4 +159,34 @@ export const updateTotalPlayers = async (totalPlayers: number) => {
   }
 
   return updatedTotalPlayers;
+};
+
+export const getWinner = async () => {
+  const winner = await prisma.user.findFirst({
+    where: { winner: true },
+  });
+
+  return winner;
+};
+
+export const updateWinner = async (id: number) => {
+  // Fetch the current value of the winner field
+  const user = await prisma.user.findUnique({
+    where: { id: id },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // Toggle the winner field
+  const newWinnerStatus = !user.winner;
+
+  // Update the winner field in the database
+  await prisma.user.update({
+    where: { id: id },
+    data: { winner: newWinnerStatus },
+  });
+
+  return { message: "Winner status updated successfully!" };
 };
