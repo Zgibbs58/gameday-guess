@@ -5,6 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
 import PlayerCountUpdate from "../components/PlayerCountUpdate";
 import Image from "next/image";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Player {
   name: string;
@@ -44,10 +46,10 @@ export default function Page() {
     if (confirmed) {
       try {
         await deleteUserAndScore(id); // Proceed with deletion if confirmed
-        window.alert("Item successfully deleted!"); // Notify user of success
+        toast.success("User successfuly deleted!"); // Notify user of success
       } catch (error: any) {
         console.error("Failed to delete item:", error);
-        window.alert("Failed to delete item."); // Notify user of failure
+        toast.error("Failed to delete user."); // Notify user of failure
       }
     }
   }, []);
@@ -75,6 +77,7 @@ export default function Page() {
 
   return (
     <div className="flex flex-col items-center gap-24">
+      <ToastContainer />
       <h1 className="text-3xl font-bold">Admin Page</h1>
       <div className="flex flex-col justify-center items-center gap-6">
         {players.map((player) => (

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PlayerTable from "./PlayerTable";
 import UserForm from "./UserForm"; // Assuming you have a form component
-import { getTeamScore, getTotalPlayers, getInitialData } from "../actions";
+import { getInitialData } from "../actions";
 import Image from "next/image";
 
 interface Player {
@@ -17,22 +17,22 @@ const ParentComponent = () => {
   const [teamScore, setTeamScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
-   useEffect(() => {
-     const fetchData = async () => {
-       try {
-         const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
-         setPlayers(players);
-         setTeamScore(teamScore);
-         setTotalPlayers(totalPlayers);
-       } catch (error) {
-         console.error("Failed to fetch initial data:", error);
-       } finally {
-         setLoading(false);
-       }
-     };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
+        setPlayers(players);
+        setTeamScore(teamScore);
+        setTotalPlayers(totalPlayers);
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-     fetchData();
-   }, []);
+    fetchData();
+  }, []);
 
   const handleAddPlayer = (newPlayer: Player) => {
     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);

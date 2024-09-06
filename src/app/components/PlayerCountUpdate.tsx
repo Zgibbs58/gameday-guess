@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { updateTotalPlayers } from "../actions"; // Import the server actions
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface PlayerCountUpdateProps {
   totalPlayers: number;
@@ -24,8 +26,10 @@ const PlayerCountUpdate: React.FC<PlayerCountUpdateProps> = ({ totalPlayers }) =
 
     try {
       await updateTotalPlayers(newTotalPlayers); // Call the server action to update the total players
+      toast.success("Total Players Updated!");
     } catch (error) {
       console.error("Failed to update score:", error);
+      toast.error("Failed to update total players.");
     }
   };
 
@@ -35,6 +39,7 @@ const PlayerCountUpdate: React.FC<PlayerCountUpdateProps> = ({ totalPlayers }) =
 
   return (
     <section className="space-y-4">
+      <ToastContainer />
       <h2 className="text-2xl text-tenOrange text-center">Player Count</h2>
       <form className="text-smokeGray flex flex-col" onSubmit={handleSubmit}>
         <input

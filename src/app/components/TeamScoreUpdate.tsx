@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { updateScore } from "../actions"; // Import the server actions
-import exp from "constants";
-import TeamScore from "./TeamScore";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface TeamScoreUpdateProps {
   teamScore: number;
@@ -26,8 +26,9 @@ const TeamScoreUpdate: React.FC<TeamScoreUpdateProps> = ({ teamScore }) => {
 
     try {
       await updateScore(newScore); // Call the server action to update the score
+      toast.success("Score Updated!");
     } catch (error) {
-      console.error("Failed to update score:", error);
+      toast.error("Failed to update score.");
     }
   };
 
@@ -37,6 +38,7 @@ const TeamScoreUpdate: React.FC<TeamScoreUpdateProps> = ({ teamScore }) => {
 
   return (
     <section className="space-y-4">
+      <ToastContainer />
       <h2 className="text-2xl text-tenOrange text-center">Team Score</h2>
       <form className="text-smokeGray flex flex-col" onSubmit={handleSubmit}>
         <input
