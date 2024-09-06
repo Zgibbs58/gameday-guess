@@ -1,29 +1,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getTeamScore, updateScore } from "../actions"; // Import the server actions
+import { updateScore } from "../actions"; // Import the server actions
+import exp from "constants";
+import TeamScore from "./TeamScore";
 
-export default function PlayerCountUpdate() {
-  const [teamScore, setTeamScore] = useState<number>(0);
+interface TeamScoreUpdateProps {
+  teamScore: number;
+}
+
+const TeamScoreUpdate: React.FC<TeamScoreUpdateProps> = ({ teamScore }) => {
   const [newScore, setNewScore] = useState<number>(teamScore); // Local state for form input
 
   // Fetch the current team score when the component mounts
   useEffect(() => {
     const fetchScore = async () => {
-      const currentScore = await getTeamScore();
-      setTeamScore(currentScore);
-      setNewScore(currentScore); // Set the local state to the fetched score
+      setNewScore(teamScore); // Set the local state to the fetched score
     };
 
     fetchScore();
-  }, []);
+  }, [teamScore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent default form submission behavior
 
     try {
-      const updatedScore = await updateScore(newScore); // Call the server action to update the score
-      setTeamScore(updatedScore.score); // Update the global team score
+      await updateScore(newScore); // Call the server action to update the score
     } catch (error) {
       console.error("Failed to update score:", error);
     }
@@ -54,4 +56,6 @@ export default function PlayerCountUpdate() {
       </form>
     </section>
   );
-}
+};
+
+export default TeamScoreUpdate;

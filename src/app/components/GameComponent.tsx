@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PlayerTable from "./PlayerTable";
 import UserForm from "./UserForm"; // Assuming you have a form component
-import { getPlayersAndScores, getTeamScore, getTotalPlayers, getWinner } from "../actions";
+import { getTeamScore, getTotalPlayers, getInitialData } from "../actions";
 import Image from "next/image";
 
 interface Player {
@@ -16,23 +16,23 @@ const ParentComponent = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
-  const [winner, setWinner] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const totalPlayers = await getTotalPlayers(); // Assuming this function fetches the total number of players
-      const playerData = await getPlayersAndScores(); // Assuming this function fetches players
-      const teamScore = await getTeamScore(); // Assuming this function fetches the team score
-      const winner = await getWinner(); // Assuming this function fetches the winner
-      setTotalPlayers(totalPlayers);
-      setPlayers(playerData);
-      setTeamScore(teamScore);
-      setLoading(false); // Set loading to false after data is fetched
-      setWinner(winner?.id);
-    };
+   useEffect(() => {
+     const fetchData = async () => {
+       try {
+         const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
+         setPlayers(players);
+         setTeamScore(teamScore);
+         setTotalPlayers(totalPlayers);
+       } catch (error) {
+         console.error("Failed to fetch initial data:", error);
+       } finally {
+         setLoading(false);
+       }
+     };
 
-    fetchPlayers();
-  }, []);
+     fetchData();
+   }, []);
 
   const handleAddPlayer = (newPlayer: Player) => {
     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
@@ -56,44 +56,55 @@ const ParentComponent = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
+      <div className="loading-container flex flex-col gap-2">
         <Image className="loading-image" src="/images/gamedayLogo.png" alt="Loading" width={200} height={200} />
+        <p className="text-tenOrange text-2xl loading-image font-semibold">Loading...</p>
       </div>
-    ); // Display a loading indicator while data is being fetched
+    );
   }
 
-  const placeholders = totalPlayers - players.length;
+  const playersNeeded = totalPlayers - players.length;
 
   return (
-    <div className="flex flex-col gap-12">
-      {players.length < totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
-      {players.length < totalPlayers ? (
-        <div>
-          <h2 className="text-2xl text-tenOrange text-center">
-            Waiting on {placeholders} More Player{placeholders > 1 ? "s" : ""}
-          </h2>
-          <ul className="text-center">
-            {players.map((player, index) => (
-              <li key={index}>
-                <span className="text-tenOrange font-semibold">{player.name}</span> is locked in
-              </li>
-            ))}
-            {Array.from({ length: placeholders }).map((_, index) => (
-              <li key={`placeholder-${index}`}>????</li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <PlayerTable winner={winner} players={players} teamScore={teamScore} />
-      )}
-      <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
-        <h3 className="text-2xl font-bold">UT Volunteers</h3>
-        <h3 className="text-2xl font-bold mb-4">Current Score</h3>
-        <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
-          <span className="text-5xl font-extrabold">{teamScore}</span>
+    <>
+      <div className="flex flex-col gap-12">
+        {players.length < totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
+        {players.length === 0 ? null : players.length < totalPlayers ? (
+          <div>
+            <h2 className="text-2xl text-tenOrange text-center mb-2">
+              Waiting on {playersNeeded} More Player{playersNeeded > 1 ? "s" : ""}
+            </h2>
+            <ul className="text-center">
+              {players.map((player, index) => (
+                <li key={index}>
+                  <span className="text-tenOrange font-semibold">{player.name}</span> is locked in
+                </li>
+              ))}
+              {/* {Array.from({ length: playersNeeded }).map((_, index) => (
+              <li key={`playersNeeded-${index}`}>????</li>
+            ))} */}
+            </ul>
+          </div>
+        ) : (
+          <PlayerTable players={players} teamScore={teamScore} />
+        )}
+        <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
+          <h3 className="text-2xl font-bold">UT Volunteers</h3>
+          <h3 className="text-2xl font-bold mb-4">Current Score</h3>
+          <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
+            <span className="text-5xl font-extrabold">{teamScore}</span>
+          </div>
         </div>
       </div>
-    </div>
+      <details className="bg-tenOrange text-white p-2 rounded-lg">
+        <summary className="hover:cursor-pointer">Click for game rules</summary>
+        <ol className="list-decimal list-inside text-centlefter mt-2 space-y-2">
+          <li>Enter the amount of points UT will score in this game.</li>
+          <li>If UT&apos;s score gets higher than your guess, you lose.</li>
+          <li>Closest score still in play at the end wins.</li>
+        </ol>
+      </details>
+    </>
   );
 };
 

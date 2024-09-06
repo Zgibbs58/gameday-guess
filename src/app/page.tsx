@@ -15,14 +15,6 @@ export default function Home() {
         <span className="text-4xl">Gameday Guess</span>
       </h1>
       <GameComponent />
-      <details className="bg-tenOrange text-white p-2 rounded-lg">
-        <summary className="hover:cursor-pointer">Click for game rules</summary>
-        <ol className="list-decimal list-inside text-centlefter mt-2 space-y-2">
-          <li>Enter the amount of points UT will score in this game.</li>
-          <li>If UT&apos;s score gets higher than your guess, you lose.</li>
-          <li>Closest score still in play at the end wins.</li>
-        </ol>
-      </details>
     </main>
   );
 }

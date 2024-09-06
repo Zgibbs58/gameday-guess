@@ -1,29 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getTotalPlayers, updateTotalPlayers } from "../actions"; // Import the server actions
+import { updateTotalPlayers } from "../actions"; // Import the server actions
 
-export default function TeamScoreUpdate() {
-  const [totalPlayers, setTotalPlayers] = useState<number>(0);
+interface PlayerCountUpdateProps {
+  totalPlayers: number;
+}
+
+const PlayerCountUpdate: React.FC<PlayerCountUpdateProps> = ({ totalPlayers }) => {
   const [newTotalPlayers, setNewTotalPlayers] = useState<number>(totalPlayers); // Local state for form input
 
   // Fetch the current total players when the component mounts
   useEffect(() => {
     const fetchTotalPlayers = async () => {
-      const currentTotalPlayers = await getTotalPlayers();
-      setTotalPlayers(currentTotalPlayers);
-      setNewTotalPlayers(currentTotalPlayers); // Set the local state to the fetched score
+      setNewTotalPlayers(totalPlayers); // Set the local state to the fetched score
     };
 
     fetchTotalPlayers();
-  }, []);
+  }, [totalPlayers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const updatedTotalPlayers = await updateTotalPlayers(newTotalPlayers); // Call the server action to update the total players
-      setTotalPlayers(updatedTotalPlayers.value); // Update the global total players
+      await updateTotalPlayers(newTotalPlayers); // Call the server action to update the total players
     } catch (error) {
       console.error("Failed to update score:", error);
     }
@@ -54,4 +54,6 @@ export default function TeamScoreUpdate() {
       </form>
     </section>
   );
-}
+};
+
+export default PlayerCountUpdate;

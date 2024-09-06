@@ -1,33 +1,43 @@
 "use client";
 
-import { getPlayersAndScores, deleteUserAndScore, updateWinner, getWinner } from "../actions";
-import { useState, useEffect, use } from "react";
+import { getPlayersAndScores, deleteUserAndScore, updateWinner, getInitialData } from "../actions";
+import { useState, useEffect, useCallback } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
 import PlayerCountUpdate from "../components/PlayerCountUpdate";
+import Image from "next/image";
 
 interface Player {
   name: string;
   score: number | undefined;
   id: number;
+  winner?: boolean;
 }
 
 export default function Page() {
+  const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [winner, setWinner] = useState<number | undefined>(undefined);
+  const [teamScore, setTeamScore] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchPlayers = async () => {
-      const winner = await getWinner();
-      // console.log(winner);
-      const data = await getPlayersAndScores();
-      setPlayers(data);
-      setWinner(winner?.id);
+    const fetchData = async () => {
+      try {
+        const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
+        setPlayers(players);
+        setTeamScore(teamScore);
+        setTotalPlayers(totalPlayers);
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchPlayers();
+    fetchData();
   }, []);
 
-  const handleDelete = async (id: number): Promise<void> => {
+  // useCallback: The handleDelete function is created once during the initial render and reused across renders. Since the dependency array is empty [], React knows that the function doesn't depend on any state or props that might change. As a result, it won't recreate the function during future re-renders unless you update the code or add dependencies.
+  const handleDelete = useCallback(async (id: number) => {
     // Show confirmation dialog
     const confirmed: boolean = window.confirm("Are you sure you want to delete this item?");
 
@@ -40,18 +50,28 @@ export default function Page() {
         window.alert("Failed to delete item."); // Notify user of failure
       }
     }
-  };
+  }, []);
 
-  const toggleWinner = async (id: number): Promise<void> => {
+  const toggleWinner = async (id: number) => {
+    setPlayers((prevPlayers) => prevPlayers.map((player) => (player.id === id ? { ...player, winner: !player.winner } : player)));
     try {
       await updateWinner(id);
-      const winner = await getWinner();
-      setWinner(winner?.id);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to toggle winner:", error);
+      // Revert winner status if update fails
+      setPlayers((prevPlayers) => prevPlayers.map((player) => (player.id === id ? { ...player, winner: !player.winner } : player)));
       window.alert("Failed to toggle winner.");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="loading-container flex flex-col gap-2">
+        <Image className="loading-image" src="/images/gamedayLogo.png" alt="Loading" width={200} height={200} />
+        <p className="text-tenOrange text-2xl loading-image font-semibold">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-24">
@@ -65,7 +85,7 @@ export default function Page() {
             <button onClick={() => handleDelete(player.id)} className="bg-red-500 rounded-md text-white p-2">
               Delete {player.name}
             </button>
-            {player.id === winner ? (
+            {player.winner ? (
               <button onClick={() => toggleWinner(player.id)} className="bg-red-500 rounded-md text-white p-2">
                 Make {player.name} a loser
               </button>
@@ -77,8 +97,8 @@ export default function Page() {
           </div>
         ))}
       </div>
-      <TeamScoreUpdate />
-      <PlayerCountUpdate />
+      <TeamScoreUpdate teamScore={teamScore} />
+      <PlayerCountUpdate totalPlayers={totalPlayers} />
     </div>
   );
 }

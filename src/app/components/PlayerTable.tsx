@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getPlayersAndScores } from "../actions";
 import Confetti from "react-confetti";
 
 interface Player {
@@ -12,14 +11,13 @@ interface Player {
 
 interface PlayerTableProps {
   players: Player[];
-  winner?: number;
 }
 
 interface TeamScoreProps {
   teamScore: number;
 }
 
-const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, teamScore, winner }) => {
+const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, teamScore }) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {

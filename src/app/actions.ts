@@ -48,6 +48,26 @@ export const saveUserAndScore = async (formData: FormData) => {
   return { message: "Score submitted successfully!" };
 };
 
+// New API for batch fetching data
+export const getInitialData = async () => {
+  const [players, teamScore, totalPlayers] = await Promise.all([
+    prisma.user.findMany(), // Get players and scores
+    prisma.teamScore.findFirst(), // Get team score
+    prisma.totalPlayers.findFirst(), // Get total players
+  ]);
+
+  return {
+    players: players.map((player) => ({
+      id: player.id,
+      name: player.name,
+      score: player.score,
+      winner: player.winner,
+    })),
+    teamScore: teamScore?.score || 0,
+    totalPlayers: totalPlayers?.value || 0,
+  };
+};
+
 export const getPlayersAndScores = async () => {
   const players = await prisma.user.findMany();
 
@@ -159,14 +179,6 @@ export const updateTotalPlayers = async (totalPlayers: number) => {
   }
 
   return updatedTotalPlayers;
-};
-
-export const getWinner = async () => {
-  const winner = await prisma.user.findFirst({
-    where: { winner: true },
-  });
-
-  return winner;
 };
 
 export const updateWinner = async (id: number) => {
