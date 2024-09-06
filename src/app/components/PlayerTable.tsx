@@ -19,14 +19,18 @@ interface TeamScoreProps {
 
 const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, teamScore }) => {
   const [showConfetti, setShowConfetti] = useState(false);
+  const [winnerName, setWinnerName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (players.some((player) => player.winner)) {
+    const winner = players.find((player) => player.winner);
+    if (winner) {
+      setWinnerName(winner.name);
       setShowConfetti(true);
 
-      // Stop confetti after 5 seconds
+      // Stop confetti after 10 seconds
       const confettiTimeout = setTimeout(() => {
         setShowConfetti(false);
+        setWinnerName(null);
       }, 10000);
 
       return () => clearTimeout(confettiTimeout);
@@ -38,6 +42,11 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
   return (
     <div className=" w-full mx-auto">
       {showConfetti && <Confetti />}
+      {showConfetti && winnerName && (
+        <div className="absolute inset-0 flex items-center justify-center max-w-screen-sm">
+          <h1 className="text-3xl font-bold text-white bg-smokeGray bg-opacity-80 p-4 rounded-lg">Congratulations {winnerName}!</h1>
+        </div>
+      )}
       <table className="min-w-full border border-smokeGray dark:border-white">
         <thead className="bg-tenOrange text-white">
           <tr>
