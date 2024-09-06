@@ -23,17 +23,13 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const result = await saveUserAndScore(formData);
+      await saveUserAndScore(formData);
       toast.success("User and score saved successfully!");
       onAddPlayer({ name, score: Number(score) });
       setName("");
       setScore("");
     } catch (error: any) {
-      if (error.message.includes("is already in use")) {
-        toast.error("This score is already in use, please try another one.");
-      } else {
-        toast.error("Failed to save user and score.");
-      }
+      toast.error("Failed to save user and score. Try using a different score.");
     }
   };
   return (
