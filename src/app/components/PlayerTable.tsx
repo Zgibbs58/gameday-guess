@@ -27,7 +27,7 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
       // Stop confetti after 5 seconds
       const confettiTimeout = setTimeout(() => {
         setShowConfetti(false);
-      }, 5000);
+      }, 10000);
 
       return () => clearTimeout(confettiTimeout);
     }
