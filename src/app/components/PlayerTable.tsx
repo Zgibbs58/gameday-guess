@@ -43,7 +43,7 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
     <div className=" w-full mx-auto">
       {showConfetti && <Confetti />}
       {showConfetti && winnerName && (
-        <div className="absolute inset-0 flex items-center justify-center h-screen w-screen text-center">
+        <div className="absolute inset-0 flex items-center justify-center h-screen w-screen text-center z-20">
           <p className="text-6xl font-bold text-white bg-smokeGray bg-opacity-80 p-4 rounded-lg ">Congrats {winnerName}!</p>
         </div>
       )}
