@@ -105,8 +105,10 @@ const ParentComponent = () => {
             <p className="text-xl">The game starts at 6:30 PM CST. Stay tuned!</p>
           </div>
         )}
-        {players.length < totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
-        {players.length === 0 ? null : players.length < totalPlayers ? (
+        {players.length >= totalPlayers || showScoreboard ? null : <UserForm onAddPlayer={handleAddPlayer} />}
+        {players.length === 0 ? null : players.length >= totalPlayers || showScoreboard ? (
+          <PlayerTable players={players} teamScore={teamScore} />
+        ) : (
           <div>
             <h2 className="text-2xl text-tenOrange text-center mb-2">
               Waiting on {playersNeeded} More Player{playersNeeded > 1 ? "s" : ""}
@@ -122,8 +124,6 @@ const ParentComponent = () => {
             ))} */}
             </ul>
           </div>
-        ) : (
-          <PlayerTable players={players} teamScore={teamScore} />
         )}
         {showScoreboard && (
           <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
