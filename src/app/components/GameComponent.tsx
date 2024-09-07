@@ -16,6 +16,8 @@ const ParentComponent = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [countdown, setCountdown] = useState<number>(0);
+  const [showScoreboard, setShowScoreboard] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,8 +36,36 @@ const ParentComponent = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const gameTime = new Date();
+    gameTime.setHours(18, 30, 0); // Set the time to 6:30 PM CST (you may need to adjust for timezone depending on server time)
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const difference = gameTime.getTime() - now.getTime();
+
+      if (difference <= 0) {
+        clearInterval(interval);
+        setShowScoreboard(true); // Show scoreboard when countdown ends
+      } else {
+        setCountdown(difference);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval); // Clean up the interval on component unmount
+  }, []);
+
   const handleAddPlayer = (newPlayer: Player) => {
     setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
+  };
+  // Format the countdown as hours, minutes, and seconds
+  const formatCountdown = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   //If you want to update the score of an existing player, you can use the following code:
@@ -67,7 +97,14 @@ const ParentComponent = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-8">
+        {!showScoreboard && (
+          <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
+            <h1 className="text-3xl font-bold">Countdown to UT Game</h1>
+            <div className="text-5xl font-extrabold">{formatCountdown(countdown)}</div>
+            <p className="text-xl">The game starts at 6:30 PM CST. Stay tuned!</p>
+          </div>
+        )}
         {players.length < totalPlayers ? <UserForm onAddPlayer={handleAddPlayer} /> : null}
         {players.length === 0 ? null : players.length < totalPlayers ? (
           <div>
@@ -88,13 +125,15 @@ const ParentComponent = () => {
         ) : (
           <PlayerTable players={players} teamScore={teamScore} />
         )}
-        <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
-          <h3 className="text-2xl font-bold">UT Volunteers</h3>
-          <h3 className="text-2xl font-bold mb-4">Current Score</h3>
-          <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
-            <span className="text-5xl font-extrabold">{teamScore}</span>
+        {showScoreboard && (
+          <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
+            <h3 className="text-2xl font-bold">UT Volunteers</h3>
+            <h3 className="text-2xl font-bold mb-4">Current Score</h3>
+            <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
+              <span className="text-5xl font-extrabold">{teamScore}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <details className="bg-tenOrange text-white p-2 rounded-lg">
         <summary className="hover:cursor-pointer">Click for game rules</summary>
