@@ -4,6 +4,7 @@ import PlayerTable from "./PlayerTable";
 import UserForm from "./UserForm"; // Assuming you have a form component
 import { getInitialData } from "../actions";
 import Image from "next/image";
+import { useGameStore } from "@/context/GameContext";
 
 interface Player {
   name: string;
@@ -12,33 +13,39 @@ interface Player {
 }
 
 const ParentComponent = () => {
-  const [totalPlayers, setTotalPlayers] = useState<number>(0);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [teamScore, setTeamScore] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
+  // const [totalPlayers, setTotalPlayers] = useState<number>(0);
+  // const [players, setPlayers] = useState<Player[]>([]);
+  // const [teamScore, setTeamScore] = useState<number>(0);
+  // const [loading, setLoading] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(0);
   const [showScoreboard, setShowScoreboard] = useState<boolean>(false);
+  const [initialized, setInitialized] = useState<boolean>(false); // New state for initialization of timer
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
-        setPlayers(players);
-        setTeamScore(teamScore);
-        setTotalPlayers(totalPlayers);
-      } catch (error) {
-        console.error("Failed to fetch initial data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { players, teamScore, totalPlayers, loading, fetchInitialData, updatePlayers } = useGameStore();
 
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const { players, teamScore, totalPlayers } = await getInitialData(); // Batch data fetch
+  //       setPlayers(players);
+  //       setTeamScore(teamScore);
+  //       setTotalPlayers(totalPlayers);
+  //     } catch (error) {
+  //       console.error("Failed to fetch initial data:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
 
   useEffect(() => {
     const gameTime = new Date();
-    gameTime.setHours(18, 30, 0); // Set the time to 6:30 PM CST (you may need to adjust for timezone depending on server time)
+    gameTime.setFullYear(2024); // Set the year
+    gameTime.setMonth(8); // Set the month (September is 8 because months are zero-based)
+    gameTime.setDate(14); // Set the day
+    gameTime.setHours(18, 45, 0); // Set the time to 6:45 PM (18:45) and seconds to 0
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -52,12 +59,25 @@ const ParentComponent = () => {
       }
     }, 1000);
 
+    // Set initialized to true after the first interval check
+    setInitialized(true);
+
     return () => clearInterval(interval); // Clean up the interval on component unmount
   }, []);
 
+  // const handleAddPlayer = (newPlayer: Player) => {
+  //   setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
+  // };
+
+  useEffect(() => {
+    // Fetch initial data and update global state
+    fetchInitialData();
+  }, [fetchInitialData]);
+
   const handleAddPlayer = (newPlayer: Player) => {
-    setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
+    updatePlayers([...players, newPlayer]); // Update global state with new player
   };
+
   // Format the countdown as hours, minutes, and seconds
   const formatCountdown = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
@@ -84,7 +104,7 @@ const ParentComponent = () => {
   //   });
   // };
 
-  if (loading) {
+  if (loading || !initialized) {
     return (
       <div className="loading-container flex flex-col gap-2">
         <Image className="loading-image" src="/images/gamedayLogo.png" alt="Loading" width={200} height={200} />
@@ -98,14 +118,14 @@ const ParentComponent = () => {
   return (
     <>
       <div className="flex flex-col gap-8">
-        {/* TODO fix the scoreboard to not reset after a new day */}
-        {/* {!showScoreboard && (
+        {/* TODO fix the timer to not reset after a new day */}
+        {!showScoreboard && (
           <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
             <h1 className="text-3xl font-bold">Countdown to UT Game</h1>
             <div className="text-5xl font-extrabold">{formatCountdown(countdown)}</div>
-            <p className="text-xl">The game starts at 6:30 PM CST. Stay tuned!</p>
+            <p className="text-xl">The game starts at 6:45 PM CST. Stay tuned!</p>
           </div>
-        )} */}
+        )}
         {players.length >= totalPlayers || showScoreboard ? null : <UserForm onAddPlayer={handleAddPlayer} />}
         {players.length === 0 ? null : players.length >= totalPlayers || showScoreboard ? (
           <PlayerTable players={players} teamScore={teamScore} />
