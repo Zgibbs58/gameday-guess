@@ -146,15 +146,15 @@ const ParentComponent = () => {
             </ul>
           </div>
         )}
-        {showScoreboard && (
-          <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
-            <h3 className="text-2xl font-bold">UT Volunteers</h3>
-            <h3 className="text-2xl font-bold mb-4">Current Score</h3>
-            <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
-              <span className="text-5xl font-extrabold">{teamScore}</span>
-            </div>
+        {/* {showScoreboard && ( */}
+        <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
+          <h3 className="text-2xl font-bold">UT Volunteers</h3>
+          <h3 className="text-2xl font-bold mb-4">Current Score</h3>
+          <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
+            <span className="text-5xl font-extrabold">{teamScore}</span>
           </div>
-        )}
+        </div>
+        {/* )} */}
       </div>
       <details className="bg-tenOrange text-white p-2 rounded-lg">
         <summary className="hover:cursor-pointer">Click for game rules</summary>
