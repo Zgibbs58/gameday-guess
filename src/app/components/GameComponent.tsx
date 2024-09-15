@@ -119,13 +119,13 @@ const ParentComponent = () => {
     <>
       <div className="flex flex-col gap-8">
         {/* TODO fix the timer to not reset after a new day */}
-        {!showScoreboard && (
+        {/* {!showScoreboard && (
           <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
             <h1 className="text-3xl font-bold">Countdown to UT Game</h1>
             <div className="text-5xl font-extrabold">{formatCountdown(countdown)}</div>
             <p className="text-xl">The game starts at 6:45 PM CST. Stay tuned!</p>
           </div>
-        )}
+        )} */}
         {players.length >= totalPlayers || showScoreboard ? null : <UserForm onAddPlayer={handleAddPlayer} />}
         {players.length === 0 ? null : players.length >= totalPlayers || showScoreboard ? (
           <PlayerTable players={players} teamScore={teamScore} />
