@@ -50,10 +50,11 @@ export const saveUserAndScore = async (formData: FormData) => {
 
 // New API for batch fetching data
 export const getInitialData = async () => {
-  const [players, teamScore, totalPlayers] = await Promise.all([
+  const [players, teamScore, totalPlayers, gameTimer] = await Promise.all([
     prisma.user.findMany(), // Get players and scores
     prisma.teamScore.findFirst(), // Get team score
     prisma.totalPlayers.findFirst(), // Get total players
+    prisma.gameTimer.findFirst(), // Get game timer
   ]);
 
   return {
@@ -65,6 +66,7 @@ export const getInitialData = async () => {
     })),
     teamScore: teamScore?.score || 0,
     totalPlayers: totalPlayers?.value || 0,
+    gameTimer: gameTimer || { targetDate: new Date().toISOString(), isActive: false },
   };
 };
 
@@ -204,11 +206,22 @@ export const updateWinner = async (id: number) => {
 };
 
 export const updateGameTimer = async (targetDateUTC: string, isActive: boolean) => {
-  await prisma.gameTimer.update({
-    where: { id: 1 },
-    data: {
-      targetDate: targetDateUTC,
-      isActive: isActive,
-    },
-  });
+  const gameTimer = await prisma.gameTimer.findFirst();
+
+  if (!gameTimer) {
+    await prisma.gameTimer.create({
+      data: {
+        targetDate: targetDateUTC,
+        isActive: isActive,
+      },
+    });
+  } else {
+    await prisma.gameTimer.update({
+      where: { id: 1 },
+      data: {
+        targetDate: targetDateUTC,
+        isActive: isActive,
+      },
+    });
+  }
 };

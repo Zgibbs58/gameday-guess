@@ -13,10 +13,15 @@ interface GameState {
   teamScore: number;
   totalPlayers: number;
   loading: boolean;
+  gameTimer: {
+    targetDate: Date;
+    isActive: boolean;
+  };
   fetchInitialData: () => Promise<void>;
   updatePlayers: (players: Player[]) => void;
   updateTeamScore: (score: number) => void;
   updateTotalPlayers: (total: number) => void;
+  updateGameTimer: (timer: { targetDate: Date; isActive: boolean }) => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
@@ -24,10 +29,20 @@ export const useGameStore = create<GameState>((set) => ({
   teamScore: 0,
   totalPlayers: 0,
   loading: true,
+  gameTimer: {
+    targetDate: new Date(),
+    isActive: false,
+  },
   fetchInitialData: async () => {
     try {
-      const { players, teamScore, totalPlayers } = await getInitialData();
-      set({ players, teamScore, totalPlayers, loading: false });
+      const { players, teamScore, totalPlayers, gameTimer } = await getInitialData();
+      set({
+        players,
+        teamScore,
+        totalPlayers,
+        loading: false,
+        gameTimer: { targetDate: new Date(gameTimer.targetDate), isActive: gameTimer.isActive },
+      });
     } catch (error) {
       console.error("Failed to fetch initial data:", error);
       set({ loading: false });
@@ -36,4 +51,5 @@ export const useGameStore = create<GameState>((set) => ({
   updatePlayers: (players: Player[]) => set({ players }),
   updateTeamScore: (teamScore: number) => set({ teamScore }),
   updateTotalPlayers: (totalPlayers: number) => set({ totalPlayers }),
+  updateGameTimer: (gameTimer) => set({ gameTimer }),
 }));

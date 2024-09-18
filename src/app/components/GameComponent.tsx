@@ -5,6 +5,7 @@ import UserForm from "./UserForm"; // Assuming you have a form component
 import { getInitialData } from "../actions";
 import Image from "next/image";
 import { useGameStore } from "@/context/GameContext";
+import GameTimer from "./GameTimer";
 
 interface Player {
   name: string;
@@ -21,7 +22,7 @@ const ParentComponent = () => {
   const [showScoreboard, setShowScoreboard] = useState<boolean>(false);
   const [initialized, setInitialized] = useState<boolean>(false); // New state for initialization of timer
 
-  const { players, teamScore, totalPlayers, loading, fetchInitialData, updatePlayers } = useGameStore();
+  const { players, teamScore, totalPlayers, loading, gameTimer, fetchInitialData, updatePlayers } = useGameStore();
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -53,7 +54,7 @@ const ParentComponent = () => {
 
       if (difference <= 0) {
         clearInterval(interval);
-        setShowScoreboard(true); // Show scoreboard when countdown ends
+        // setShowScoreboard(true); // Show scoreboard when countdown ends
       } else {
         setCountdown(difference);
       }
@@ -104,7 +105,7 @@ const ParentComponent = () => {
   //   });
   // };
 
-  if (loading || !initialized) {
+  if (loading) {
     return (
       <div className="loading-container flex flex-col gap-2">
         <Image className="loading-image" src="/images/gamedayLogo.png" alt="Loading" width={200} height={200} />
@@ -119,13 +120,7 @@ const ParentComponent = () => {
     <>
       <div className="flex flex-col gap-8">
         {/* TODO fix the timer to not reset after a new day */}
-        {!showScoreboard && (
-          <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
-            <h1 className="text-3xl font-bold">Countdown to UT Game</h1>
-            <div className="text-5xl font-extrabold">{formatCountdown(countdown)}</div>
-            <p className="text-xl">The game starts at 6:45 PM CST. Stay tuned!</p>
-          </div>
-        )}
+        {gameTimer.isActive && <GameTimer targetDate={gameTimer.targetDate} />}
         {players.length >= totalPlayers || showScoreboard ? null : <UserForm onAddPlayer={handleAddPlayer} />}
         {players.length === 0 ? null : players.length >= totalPlayers || showScoreboard ? (
           <PlayerTable players={players} teamScore={teamScore} />
