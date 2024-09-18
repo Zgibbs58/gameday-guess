@@ -27,3 +27,10 @@ model TotalPlayers {
   id    Int @id @default(autoincrement())
   value Int @default(1)
 }
+
+model GameTimer {
+  id         Int      @id @default(autoincrement())
+  targetDate DateTime // Target date and time for countdown (stored in UTC)
+  isActive   Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+}

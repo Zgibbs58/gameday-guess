@@ -202,3 +202,13 @@ export const updateWinner = async (id: number) => {
 
   return { message: "Winner status updated successfully!" };
 };
+
+export const updateGameTimer = async (targetDateUTC: string, isActive: boolean) => {
+  await prisma.gameTimer.update({
+    where: { id: 1 },
+    data: {
+      targetDate: targetDateUTC,
+      isActive: isActive,
+    },
+  });
+};

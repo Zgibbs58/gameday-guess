@@ -1,12 +1,13 @@
 "use client";
 
-import { getPlayersAndScores, deleteUserAndScore, updateWinner, getInitialData } from "../actions";
+import { deleteUserAndScore, updateWinner, getInitialData } from "../actions";
 import { useState, useEffect, useCallback } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
 import PlayerCountUpdate from "../components/PlayerCountUpdate";
 import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GameTimerUpdate from "../components/GameTimerUpdate";
 
 interface Player {
   name: string;
@@ -102,6 +103,7 @@ export default function Page() {
       </div>
       <TeamScoreUpdate teamScore={teamScore} />
       <PlayerCountUpdate totalPlayers={totalPlayers} />
+      <GameTimerUpdate />
     </div>
   );
 }

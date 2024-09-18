@@ -119,13 +119,13 @@ const ParentComponent = () => {
     <>
       <div className="flex flex-col gap-8">
         {/* TODO fix the timer to not reset after a new day */}
-        {/* {!showScoreboard && (
+        {!showScoreboard && (
           <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
             <h1 className="text-3xl font-bold">Countdown to UT Game</h1>
             <div className="text-5xl font-extrabold">{formatCountdown(countdown)}</div>
             <p className="text-xl">The game starts at 6:45 PM CST. Stay tuned!</p>
           </div>
-        )} */}
+        )}
         {players.length >= totalPlayers || showScoreboard ? null : <UserForm onAddPlayer={handleAddPlayer} />}
         {players.length === 0 ? null : players.length >= totalPlayers || showScoreboard ? (
           <PlayerTable players={players} teamScore={teamScore} />
@@ -146,15 +146,15 @@ const ParentComponent = () => {
             </ul>
           </div>
         )}
-        {/* {showScoreboard && ( */}
-        <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
-          <h3 className="text-2xl font-bold">UT Volunteers</h3>
-          <h3 className="text-2xl font-bold mb-4">Current Score</h3>
-          <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
-            <span className="text-5xl font-extrabold">{teamScore}</span>
+        {showScoreboard && (
+          <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
+            <h3 className="text-2xl font-bold">UT Volunteers</h3>
+            <h3 className="text-2xl font-bold mb-4">Current Score</h3>
+            <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
+              <span className="text-5xl font-extrabold">{teamScore}</span>
+            </div>
           </div>
-        </div>
-        {/* )} */}
+        )}
       </div>
       <details className="bg-tenOrange text-white p-2 rounded-lg">
         <summary className="hover:cursor-pointer">Click for game rules</summary>
