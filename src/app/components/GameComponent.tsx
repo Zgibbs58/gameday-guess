@@ -6,6 +6,9 @@ import { getInitialData } from "../actions";
 import Image from "next/image";
 import { useGameStore } from "@/context/GameContext";
 import GameTimer from "./GameTimer";
+import { Noto_Serif_Armenian } from "next/font/google";
+
+const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
 
 interface Player {
   name: string;
@@ -142,12 +145,54 @@ const ParentComponent = () => {
           </div>
         )}
         {showScoreboard && (
-          <div className="bg-tenOrange rounded-lg shadow-lg p-6 text-center text-white">
-            <h3 className="text-2xl font-bold">UT Volunteers</h3>
-            <h3 className="text-2xl font-bold mb-4">Current Score</h3>
-            <div className="flex items-center justify-center bg-smokeGray rounded-lg py-3 px-5">
-              <span className="text-5xl font-extrabold">{teamScore}</span>
+          <div className="flex flex-col items-center">
+            {/* Stadium Header */}
+            <h3 className="relative text-lg font-extrabold text-center bg-tenOrange shadow-2xl px-4 text-white rounded-t-lg">
+              NEYLAND <span className={`text-5xl text-white ${serif.className}`}>T</span> STADIUM
+              <div className="absolute inset-0 flex justify-center items-center">
+                <div className="animate-spin-slow w-4 h-4 rounded-full"></div>
+              </div>
+            </h3>
+
+            {/* Score Box */}
+            <div className="relative bg-tenOrange rounded-xl shadow-xl p-4 text-center text-white w-96 border-white">
+              <h3 className="text-3xl font-bold mb-6 uppercase tracking-wider">Current Score</h3>
+
+              {/* Animated Border with Tracing Effect */}
+              <div className="relative flex items-center justify-center bg-smokeGray rounded-lg py-6 px-8 border-transparent animate-border-trace">
+                <span className="text-7xl font-extrabold text-glow animate-pulse">{teamScore}</span>
+
+                {/* Tracing Border */}
+                <div className="absolute rounded-lg pointer-events-none"></div>
+              </div>
             </div>
+
+            {/* Styles for Tracing Border */}
+            <style jsx>{`
+              .text-glow {
+                text-shadow: 0 0 2px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.8), 0 0 2px rgba(255, 255, 255, 0.7),
+                  0 0 2px rgba(255, 128, 0, 0.6), 0 0 2px rgba(255, 128, 0, 0.5);
+              }
+
+              @keyframes borderTrace {
+                0% {
+                  border-color: white;
+                  box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.9);
+                }
+                50% {
+                  border-color: transparent;
+                  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+                }
+                100% {
+                  border-color: white;
+                  box-shadow: 0 0 15px 10px rgba(255, 255, 255, 0.9);
+                }
+              }
+
+              .animate-border-trace {
+                animation: borderTrace 2s ease-in-out infinite;
+              }
+            `}</style>
           </div>
         )}
       </div>
