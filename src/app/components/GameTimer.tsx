@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
+import { Noto_Serif_Armenian } from "next/font/google";
+
+const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
 
 export default function GameTimer({ targetDate }: { targetDate: Date }) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -50,10 +53,18 @@ export default function GameTimer({ targetDate }: { targetDate: Date }) {
   const formattedCentralTime = formatInTimeZone(targetDate, centralTimeZone, "hh:mm a zzz");
 
   return (
-    <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
-      <h1 className="text-2xl font-bold">Countdown to Gametime</h1>
-      <div className="text-5xl font-extrabold">{formatTime(timeLeft)}</div>
-      <p className="text-xl">Gametime: {formattedCentralTime}.</p>
+    <div className="flex flex-col items-center shadow-2xl">
+      <h3 className="relative text-lg font-extrabold text-center bg-tenOrange px-4 text-white rounded-t-lg border border-b-1 dark:border-smokeGray">
+        NEYLAND <span className={`text-5xl text-white ${serif.className}`}>T</span> STADIUM
+        <div className="absolute inset-0 flex justify-center items-center">
+          <div className="animate-spin-slow w-4 h-4 rounded-full"></div>
+        </div>
+      </h3>
+      <div className="flex flex-col items-center gap-4 text-white bg-tenOrange rounded-lg p-2 text-center">
+        <h1 className="text-2xl font-bold">Countdown to Gametime</h1>
+        <div className="text-5xl font-extrabold">{formatTime(timeLeft)}</div>
+        <p className="text-xl">Gametime: {formattedCentralTime}.</p>
+      </div>
     </div>
   );
 }
