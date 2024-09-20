@@ -81,7 +81,7 @@ export default function GameTimerUpdate() {
           onChange={(e) => setMinute(Number(e.target.value))}
           required
         />
-        <label>
+        <label className="text-black dark:text-white">
           <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
           Active Timer
         </label>

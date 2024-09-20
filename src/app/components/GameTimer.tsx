@@ -2,17 +2,32 @@
 import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Noto_Serif_Armenian } from "next/font/google";
+import { updateGameTimer } from "../actions";
 
 const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
 
-export default function GameTimer({ targetDate }: { targetDate: Date }) {
+export default function GameTimer({ targetDate, isActive }: { targetDate: Date; isActive: boolean }) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!targetDate) return;
+    if (!targetDate || gameStarted) return;
 
     // Set the initial timeLeft without waiting for the interval
     const now = new Date();
+
+    if (now.getTime() >= targetDate.getTime()) {
+      setTimeLeft(0);
+      setGameStarted(true); // Set game as started
+
+      // If the game time has passed and isActive is still true, update it to false
+      if (isActive) {
+        updateGameTimer(targetDate.toISOString(), false); // Update isActive to false in the DB
+      }
+
+      return;
+    }
+
     const initialDifference = targetDate.getTime() - now.getTime();
     setTimeLeft(initialDifference);
 
@@ -20,10 +35,22 @@ export default function GameTimer({ targetDate }: { targetDate: Date }) {
       const now = new Date();
       const difference = targetDate.getTime() - now.getTime();
       setTimeLeft(difference);
+
+      // Check if the game has started (current time >= target time)
+      if (difference <= 0) {
+        clearInterval(interval); // Stop the timer
+        setTimeLeft(0);
+        setGameStarted(true); // Mark the game as started
+
+        // If the game time has passed and isActive is still true, update it to false
+        if (isActive) {
+          updateGameTimer(targetDate.toISOString(), false); // Call the server action
+        }
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [targetDate]);
+  }, [targetDate, isActive]);
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor((ms / 1000) % 60);

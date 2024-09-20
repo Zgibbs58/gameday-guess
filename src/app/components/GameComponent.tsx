@@ -81,7 +81,7 @@ const ParentComponent = () => {
     <>
       <div className="flex flex-col gap-8">
         {/* TODO fix the timer to not reset after a new day */}
-        {gameTimer.isActive && <GameTimer targetDate={gameTimer.targetDate} />}
+        {gameTimer.isActive && <GameTimer isActive={gameTimer.isActive} targetDate={gameTimer.targetDate} />}
         {players.length >= totalPlayers || !gameTimer.isActive ? null : <UserForm onAddPlayer={handleAddPlayer} />}
         {players.length === 0 ? null : players.length >= totalPlayers || !gameTimer.isActive ? (
           <PlayerTable players={players} teamScore={teamScore} />
@@ -102,7 +102,7 @@ const ParentComponent = () => {
             </ul>
           </div>
         )}
-        {!gameTimer && (
+        {!gameTimer.isActive && (
           <div className="flex flex-col items-center shadow-2xl">
             {/* Stadium Header */}
             <h3 className="relative text-lg font-extrabold text-center bg-tenOrange px-4 text-white rounded-t-lg border border-b-1 dark:border-smokeGray">
