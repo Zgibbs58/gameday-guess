@@ -9,6 +9,13 @@ export default function GameTimer({ targetDate }: { targetDate: Date }) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
+    if (!targetDate) return;
+
+    // Set the initial timeLeft without waiting for the interval
+    const now = new Date();
+    const initialDifference = targetDate.getTime() - now.getTime();
+    setTimeLeft(initialDifference);
+
     const interval = setInterval(() => {
       const now = new Date();
       const difference = targetDate.getTime() - now.getTime();

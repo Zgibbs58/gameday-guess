@@ -28,11 +28,11 @@ export const useGameStore = create<GameState>((set) => ({
   players: [],
   teamScore: 0,
   totalPlayers: 0,
-  loading: true,
   gameTimer: {
     targetDate: new Date(),
     isActive: false,
   },
+  loading: true,
   fetchInitialData: async () => {
     try {
       const { players, teamScore, totalPlayers, gameTimer } = await getInitialData();
@@ -40,8 +40,8 @@ export const useGameStore = create<GameState>((set) => ({
         players,
         teamScore,
         totalPlayers,
-        loading: false,
         gameTimer: { targetDate: new Date(gameTimer.targetDate), isActive: gameTimer.isActive },
+        loading: false,
       });
     } catch (error) {
       console.error("Failed to fetch initial data:", error);
