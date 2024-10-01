@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PlayerTable from "./PlayerTable";
 import UserForm from "./UserForm"; // Assuming you have a form component
 import { getInitialData } from "../actions";
 import Image from "next/image";
 import { useGameStore } from "@/context/GameContext";
 import GameTimer from "./GameTimer";
+import ScoreAlertModal from "./ScoreAlertModal";
 import { Noto_Serif_Armenian } from "next/font/google";
 
 const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
@@ -22,7 +23,11 @@ const ParentComponent = () => {
   // const [teamScore, setTeamScore] = useState<number>(0);
   // const [loading, setLoading] = useState<boolean>(true);
   const { players, teamScore, totalPlayers, loading, gameTimer, fetchInitialData, updatePlayers } = useGameStore();
-  const [showScoreboard, setShowScoreboard] = useState<boolean>(false);
+  const [showScoreAlert, setShowScoreAlert] = useState<boolean>(false);
+  const [newScore, setNewScore] = useState<number | null>(null);
+  const [firstLoad, setFirstLoad] = useState<boolean>(true); // Track first load
+  // useRef for storing the audio object
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -42,12 +47,47 @@ const ParentComponent = () => {
   // }, []);
 
   useEffect(() => {
+    // Initialize the audio object when the component mounts
+    audioRef.current = new Audio("/audio/rockyTop.mp3");
     // Fetch initial data and update global state
     fetchInitialData();
   }, [fetchInitialData]);
 
+  useEffect(() => {
+    // Handle localStorage only after the initial fetch is done
+    if (!loading && teamScore !== undefined) {
+      const storedScore = localStorage.getItem("previousTeamScore");
+
+      if (storedScore !== null) {
+        const previousScore = parseInt(storedScore, 10);
+
+        if (previousScore !== teamScore) {
+          // Show modal only if score has changed
+          setNewScore(teamScore);
+          setShowScoreAlert(true);
+        }
+      }
+
+      localStorage.setItem("previousTeamScore", teamScore.toString());
+    }
+
+    // After initial load, disable firstLoad state
+    setFirstLoad(false);
+  }, [teamScore, loading]);
+
   const handleAddPlayer = (newPlayer: Player) => {
     updatePlayers([...players, newPlayer]); // Update global state with new player
+  };
+
+  const handlePlayTheme = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch((error) => console.error("Failed to play audio:", error));
+    }
+    setShowScoreAlert(false); // Close the modal after playing theme
+  };
+
+  const handleDismissAlert = () => {
+    setShowScoreAlert(false); // Close the modal without playing theme
   };
 
   //If you want to update the score of an existing player, you can use the following code:
@@ -160,6 +200,25 @@ const ParentComponent = () => {
           <li>Closest score still in play at the end wins.</li>
         </ol>
       </details>
+      {/* Score Alert Modal */}
+      {showScoreAlert && newScore !== null && (
+        <ScoreAlertModal onClose={handleDismissAlert}>
+          <div className="p-6 text-center">
+            <h2 className="text-2xl font-bold text-tenOrange mb-4">Score Update!</h2>
+            <p className="text-lg mb-4 text-smokeGray">
+              Vols new score: <span className="font-bold text-tenOrange">{newScore}</span>
+            </p>
+            <div className="flex justify-center gap-4">
+              <button className="bg-tenOrange text-white px-4 py-2 rounded-lg" onClick={handlePlayTheme}>
+                <span className="text-2xl">🎉</span> Celebrate <span className="text-2xl">🎉</span>
+              </button>
+              <button className="bg-red-500 text-white px-4 py-2 rounded-lg" onClick={handleDismissAlert}>
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </ScoreAlertModal>
+      )}
     </>
   );
 };
