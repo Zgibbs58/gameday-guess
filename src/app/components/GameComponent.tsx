@@ -8,6 +8,7 @@ import { useGameStore } from "@/context/GameContext";
 import GameTimer from "./GameTimer";
 import ScoreAlertModal from "./ScoreAlertModal";
 import { Noto_Serif_Armenian } from "next/font/google";
+import Confetti from "react-confetti";
 
 const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
 
@@ -26,8 +27,10 @@ const ParentComponent = () => {
   const [showScoreAlert, setShowScoreAlert] = useState<boolean>(false);
   const [newScore, setNewScore] = useState<number | null>(null);
   const [firstLoad, setFirstLoad] = useState<boolean>(true); // Track first load
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
   // useRef for storing the audio object
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const confettiRef = useRef<HTMLDivElement>(null);
 
   // useEffect(() => {
   //   const fetchData = async () => {
@@ -48,7 +51,7 @@ const ParentComponent = () => {
 
   useEffect(() => {
     // Initialize the audio object when the component mounts
-    audioRef.current = new Audio("/audio/rockyTop.mp3");
+    audioRef.current = new Audio("/audio/rockyTop_short.mp3");
     // Fetch initial data and update global state
     fetchInitialData();
   }, [fetchInitialData]);
@@ -61,7 +64,7 @@ const ParentComponent = () => {
       if (storedScore !== null) {
         const previousScore = parseInt(storedScore, 10);
 
-        if (previousScore !== teamScore) {
+        if (previousScore !== teamScore && teamScore !== 0 && !firstLoad) {
           // Show modal only if score has changed
           setNewScore(teamScore);
           setShowScoreAlert(true);
@@ -73,7 +76,7 @@ const ParentComponent = () => {
 
     // After initial load, disable firstLoad state
     setFirstLoad(false);
-  }, [teamScore, loading]);
+  }, [teamScore, loading, firstLoad]);
 
   const handleAddPlayer = (newPlayer: Player) => {
     updatePlayers([...players, newPlayer]); // Update global state with new player
@@ -84,6 +87,12 @@ const ParentComponent = () => {
       audioRef.current.play().catch((error) => console.error("Failed to play audio:", error));
     }
     setShowScoreAlert(false); // Close the modal after playing theme
+    setShowConfetti(true); // Show confetti when theme is played
+
+    // Hide confetti after a few seconds (optional)
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 14000);
   };
 
   const handleDismissAlert = () => {
@@ -219,6 +228,20 @@ const ParentComponent = () => {
           </div>
         </ScoreAlertModal>
       )}
+      {/* Confetti component for celebration */}
+      <div ref={confettiRef}>
+        {showConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            numberOfPieces={800}
+            wind={0.03} // Adjust wind to control horizontal drift
+            colors={["#FF8200", "#FFFFFF"]}
+            gravity={0.1} // Adjust gravity to control fall speed
+            recycle={true} // Keep confetti active until manually turned off
+          />
+        )}
+      </div>
     </>
   );
 };
