@@ -225,6 +225,7 @@ const ParentComponent = () => {
                 Dismiss
               </button>
             </div>
+            <p className="text-tenOrange font-semibold pt-6">Turn up your media volume to celebrate!</p>
           </div>
         </ScoreAlertModal>
       )}
