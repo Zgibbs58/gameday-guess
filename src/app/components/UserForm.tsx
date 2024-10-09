@@ -42,7 +42,7 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
           name="name"
           placeholder="Enter your name"
           minLength={2}
-          maxLength={10}
+          maxLength={16}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required

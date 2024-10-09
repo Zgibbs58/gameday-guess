@@ -234,9 +234,10 @@ const ParentComponent = () => {
         {showConfetti && (
           <Confetti
             width={window.innerWidth}
-            height={window.innerHeight}
+            // 450 is rough estimate of height of fixed elements
+            height={450 + players.length * 56}
             numberOfPieces={800}
-            wind={0.03} // Adjust wind to control horizontal drift
+            wind={0.01} // Adjust wind to control horizontal drift
             colors={["#FF8200", "#FFFFFF"]}
             gravity={0.1} // Adjust gravity to control fall speed
             recycle={true} // Keep confetti active until manually turned off

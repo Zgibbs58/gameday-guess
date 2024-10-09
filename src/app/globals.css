@@ -56,3 +56,20 @@ body {
   animation: fade 1.2s infinite ease-in-out;
   border-radius: 8px;
 }
+
+@keyframes bannerMove {
+  0% {
+    opacity: 10%;
+  }
+  50% {
+    opacity: 100%;
+  }
+  100% {
+    opacity: 10%;
+  }
+}
+
+.winner-text {
+  white-space: nowrap; /* Prevent line breaks */
+  animation: bannerMove 2s linear infinite; /* Adjust duration for speed control */
+}

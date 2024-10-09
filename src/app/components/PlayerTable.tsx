@@ -41,17 +41,32 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
 
   return (
     <div className=" w-full mx-auto">
-      {showConfetti && <Confetti />}
+      {showConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          // 450 is rough estimate of height of fixed elements
+          height={450 + players.length * 56}
+          numberOfPieces={600}
+          wind={0.01} // Adjust wind to control horizontal drift
+          colors={["#FF8200", "#FFFFFF"]}
+          gravity={0.1} // Adjust gravity to control fall speed
+          recycle={true} // Keep confetti active until manually turned off
+        />
+      )}
       {showConfetti && winnerName && (
         <div className="absolute inset-0 flex items-center justify-center h-screen w-screen text-center z-20">
-          <p className="text-6xl font-bold text-white bg-smokeGray bg-opacity-80 p-4 rounded-lg ">Congrats {winnerName}!</p>
+          <div className="flex flex-col content-center justify-center text-3xl font-bold text-white bg-tenOrange bg-opacity-95 p-4 rounded-lg gap-2 w-screen md:w-auto">
+            <p className="">Congrats,</p>
+            <p className="">{winnerName}!</p>
+            <p className="text-5xl">You Win!</p>
+          </div>
         </div>
       )}
       <table className="min-w-full border border-smokeGray dark:border-white">
         <thead className="bg-tenOrange text-white">
           <tr>
-            <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Player Name</th>
-            <th className="py-2 px-4 border-b border-smokeGray dark:border-white">Predicted Score</th>
+            <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Name</th>
+            <th className="py-2 px-4 border-b border-smokeGray dark:border-white">Score</th>
           </tr>
         </thead>
         <tbody>
@@ -59,32 +74,32 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
             <tr key={index} className="text-center second-element">
               {player.winner ? (
                 <>
-                  <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white bg-green-500 text-white">
+                  <td className="relative py-2 px-4 text-lg font-semibold border-b border-r border-smokeGray dark:border-white bg-green-500 text-white">
                     {player.name}
-                  </td>
-                  <td className="relative py-2 px-4 text-xl font-semibold border-b border-smokeGray dark:border-white bg-green-500 text-white">
-                    {player.score}
-                    <span className="absolute top-1/2 left-2 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-75 pointer-events-none">
+                    <span className="absolute top-1/2 -right-4 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-95 pointer-events-none winner-text">
                       Winner
                     </span>
+                  </td>
+                  <td className="py-2 px-4 text-lg font-semibold border-b border-smokeGray dark:border-white bg-green-500 text-white winner-border">
+                    {player.score}
                   </td>
                 </>
               ) : player.score < teamScore ? (
                 <>
-                  <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">
+                  <td className="relative py-2 px-4 text-lg font-semibold border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">
                     {player.name}
-                  </td>
-                  <td className="relative py-2 px-4 text-xl font-semibold border-b border-smokeGray dark:border-white bg-red-500 text-white">
-                    {player.score}
-                    <span className="absolute top-1/2 left-2 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-75 pointer-events-none">
+                    <span className="absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-80 pointer-events-none">
                       Loser
                     </span>
+                  </td>
+                  <td className="py-2 px-4 text-lg font-semibold border-b border-smokeGray dark:border-white bg-red-500 text-white">
+                    {player.score}
                   </td>
                 </>
               ) : (
                 <>
-                  <td className="py-2 px-4 text-xl font-semibold border-b border-r border-smokeGray dark:border-white">{player.name}</td>
-                  <td className="py-2 px-4 text-xl font-semibold border-b border-smokeGray dark:border-white">{player.score}</td>
+                  <td className="py-2 px-4 text-lg font-semibold border-b border-r border-smokeGray dark:border-white">{player.name}</td>
+                  <td className="py-2 px-4 text-lg font-semibold border-b border-smokeGray dark:border-white">{player.score}</td>
                 </>
               )}
             </tr>
