@@ -1,68 +1,103 @@
 "use server";
 
 import { PrismaClient } from "@prisma/client";
+import { getServerAuthSession } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
-export const saveUserAndScore = async (formData: FormData) => {
-  const name = formData.get("name")?.toString() || "";
+export const saveUserGuess = async (formData: FormData, gameId?: string) => {
+  const session = await getServerAuthSession();
+  
+  if (!session?.user) {
+    throw new Error("You must be logged in to submit a guess.");
+  }
+
   const score = parseInt(formData.get("score")?.toString() || "0", 10);
-  console.log(name, score);
-
-  if (!name || isNaN(score)) {
-    throw new Error("Name and score are required.");
+  
+  if (isNaN(score)) {
+    throw new Error("Score is required.");
   }
 
-  // Check if the score has already been used
-  const existingUserWithScore = await prisma.user.findFirst({
-    where: { score },
+  // Check if the score has already been used for this game
+  const existingGuessWithScore = await prisma.guess.findFirst({
+    where: { 
+      score,
+      gameId: gameId || null,
+    },
   });
 
-  if (existingUserWithScore) {
-    throw new Error(`Score ${score} is already in use by another user.`);
+  if (existingGuessWithScore) {
+    throw new Error(`Score ${score} is already in use for this game.`);
   }
 
-  //check if user exists
-  let user = await prisma.user.findFirst({
-    where: { name },
+  // Check if user already has a guess for this game
+  const existingUserGuess = await prisma.guess.findFirst({
+    where: {
+      userId: session.user.id,
+      gameId: gameId || null,
+    },
   });
 
-  if (!user) {
-    // if user does not exist, create user
-    user = await prisma.user.create({
-      data: {
-        name,
-        score,
-      },
-    });
+  if (existingUserGuess) {
+    throw new Error("You have already submitted a guess for this game.");
   }
-  // code to allow user to update their score but also anybody can update their score
-  // else {
-  //   // Update the user's score if they already exist
-  //   await prisma.user.update({
-  //     where: { id: user.id },
-  //     data: { score },
-  //   });
-  // }
 
-  return { message: "Score submitted successfully!" };
+  // Create the guess
+  const guess = await prisma.guess.create({
+    data: {
+      userId: session.user.id,
+      score,
+      gameId: gameId || null,
+    },
+  });
+
+  // Update user stats
+  await prisma.userStats.upsert({
+    where: { userId: session.user.id },
+    update: {
+      totalGames: { increment: 1 },
+      lastPlayed: new Date(),
+    },
+    create: {
+      userId: session.user.id,
+      totalGames: 1,
+      totalWins: 0,
+      lastPlayed: new Date(),
+    },
+  });
+
+  return { message: "Guess submitted successfully!", guessId: guess.id };
+};
+
+// Legacy function for backward compatibility
+export const saveUserAndScore = async (formData: FormData) => {
+  return saveUserGuess(formData);
 };
 
 // New API for batch fetching data
-export const getInitialData = async () => {
-  const [players, teamScore, totalPlayers, gameTimer] = await Promise.all([
-    prisma.user.findMany(), // Get players and scores
-    prisma.teamScore.findFirst(), // Get team score
-    prisma.totalPlayers.findFirst(), // Get total players
-    prisma.gameTimer.findFirst(), // Get game timer
+export const getInitialData = async (gameId?: string) => {
+  const [guesses, teamScore, totalPlayers, gameTimer] = await Promise.all([
+    prisma.guess.findMany({
+      where: { gameId: gameId || null },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
+    prisma.teamScore.findFirst(),
+    prisma.totalPlayers.findFirst(),
+    prisma.gameTimer.findFirst(),
   ]);
 
   return {
-    players: players.map((player) => ({
-      id: player.id,
-      name: player.name,
-      score: player.score,
-      winner: player.winner,
+    players: guesses.map((guess) => ({
+      id: guess.id,
+      name: guess.user.name || "Anonymous",
+      score: guess.score,
+      winner: guess.isWinner,
     })),
     teamScore: teamScore?.score || 0,
     totalPlayers: totalPlayers?.value || 0,
@@ -70,10 +105,18 @@ export const getInitialData = async () => {
   };
 };
 
-export const getPlayersAndScores = async () => {
-  const players = await prisma.user.findMany();
+export const getPlayersAndScores = async (gameId?: string) => {
+  const guesses = await prisma.guess.findMany({
+    where: { gameId: gameId || null },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
 
-  // Flatten the structure if necessary
   interface PlayerData {
     name: string;
     score: number;
@@ -81,30 +124,53 @@ export const getPlayersAndScores = async () => {
     winner?: boolean;
   }
 
-  const playerData: PlayerData[] = players.map((player) => ({
-    name: player.name,
-    score: player.score,
-    id: player.id,
-    winner: player.winner,
+  const playerData: PlayerData[] = guesses.map((guess) => ({
+    name: guess.user.name || "Anonymous",
+    score: guess.score,
+    id: guess.id,
+    winner: guess.isWinner,
   }));
 
   return playerData;
 };
 
-export const deleteUserAndScore = async (id: number) => {
-  // Delete the user
+export const deleteUserGuess = async (guessId: number) => {
+  const session = await getServerAuthSession();
+  
+  if (!session?.user) {
+    throw new Error("You must be logged in to delete a guess.");
+  }
+
+  // Verify the guess belongs to the current user or user is admin
+  const guess = await prisma.guess.findUnique({
+    where: { id: guessId },
+  });
+
+  if (!guess) {
+    throw new Error("Guess not found.");
+  }
+
+  if (guess.userId !== session.user.id) {
+    throw new Error("You can only delete your own guesses.");
+  }
 
   try {
-    await prisma.user.delete({
+    await prisma.guess.delete({
       where: {
-        id: id,
+        id: guessId,
       },
     });
   } catch (error) {
-    console.error("Failed to delete item:", error);
-    window.alert("Failed to delete item.");
+    console.error("Failed to delete guess:", error);
+    throw new Error("Failed to delete guess.");
   }
-  return { message: "User deleted successfully!" };
+  
+  return { message: "Guess deleted successfully!" };
+};
+
+// Legacy function for backward compatibility
+export const deleteUserAndScore = async (id: number) => {
+  return deleteUserGuess(id);
 };
 
 export const getTeamScore = async () => {
@@ -183,26 +249,53 @@ export const updateTotalPlayers = async (totalPlayers: number) => {
   return updatedTotalPlayers;
 };
 
-export const updateWinner = async (id: number) => {
-  // Fetch the current value of the winner field
-  const user = await prisma.user.findUnique({
-    where: { id: id },
+export const updateGuessWinner = async (guessId: number) => {
+  const guess = await prisma.guess.findUnique({
+    where: { id: guessId },
   });
 
-  if (!user) {
-    throw new Error("User not found");
+  if (!guess) {
+    throw new Error("Guess not found");
   }
 
-  // Toggle the winner field
-  const newWinnerStatus = !user.winner;
+  const newWinnerStatus = !guess.isWinner;
 
-  // Update the winner field in the database
-  await prisma.user.update({
-    where: { id: id },
-    data: { winner: newWinnerStatus },
+  await prisma.guess.update({
+    where: { id: guessId },
+    data: { isWinner: newWinnerStatus },
   });
 
+  // Update user stats if marking as winner
+  if (newWinnerStatus) {
+    await prisma.userStats.upsert({
+      where: { userId: guess.userId },
+      update: {
+        totalWins: { increment: 1 },
+        bestScore: guess.score,
+      },
+      create: {
+        userId: guess.userId,
+        totalGames: 1,
+        totalWins: 1,
+        bestScore: guess.score,
+      },
+    });
+  } else {
+    // Decrement wins if removing winner status
+    await prisma.userStats.update({
+      where: { userId: guess.userId },
+      data: {
+        totalWins: { decrement: 1 },
+      },
+    });
+  }
+
   return { message: "Winner status updated successfully!" };
+};
+
+// Legacy function for backward compatibility
+export const updateWinner = async (id: number) => {
+  return updateGuessWinner(id);
 };
 
 export const updateGameTimer = async (targetDateUTC: string, isActive: boolean) => {
@@ -224,4 +317,54 @@ export const updateGameTimer = async (targetDateUTC: string, isActive: boolean) 
       },
     });
   }
+};
+
+export const getUserStats = async (userId: string) => {
+  const stats = await prisma.userStats.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (!stats) {
+    return null;
+  }
+
+  return {
+    totalGames: stats.totalGames,
+    totalWins: stats.totalWins,
+    bestScore: stats.bestScore,
+    lastPlayed: stats.lastPlayed,
+    winRate: stats.totalGames > 0 ? (stats.totalWins / stats.totalGames) * 100 : 0,
+    user: stats.user,
+  };
+};
+
+export const getUserGuesses = async (userId: string, limit = 10) => {
+  const guesses = await prisma.guess.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  return guesses.map((guess) => ({
+    id: guess.id,
+    score: guess.score,
+    isWinner: guess.isWinner,
+    gameId: guess.gameId,
+    createdAt: guess.createdAt,
+  }));
 };

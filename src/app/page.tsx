@@ -3,19 +3,23 @@ import TeamScore from "./components/TeamScore";
 import ScoreBoard from "./components/PlayerTable";
 import UserForm from "./components/UserForm";
 import GameComponent from "./components/GameComponent";
+import NavigationHeader from "./components/NavigationHeader";
 import { getPlayersAndScores } from "./actions";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-between pt-6 gap-12">
-      {/* <TeamScore /> */}
-      <h1 className="text-2xl font-bold text-tenOrange text-center">
-        Welcome to
-        <br />
-        <span className="text-4xl">Gameday Guess</span>
-      </h1>
-      <GameComponent />
-    </main>
+    <>
+      <NavigationHeader />
+      <main className="flex flex-col items-center justify-between pt-6 gap-12">
+        {/* <TeamScore /> */}
+        <h1 className="text-2xl font-bold text-tenOrange text-center">
+          Welcome to
+          <br />
+          <span className="text-4xl">Gameday Guess</span>
+        </h1>
+        <GameComponent />
+      </main>
+    </>
   );
 }
 
