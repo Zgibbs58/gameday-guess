@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteUserAndScore, updateWinner, getInitialData, endCurrentGame, createNewGame, clearAllGuesses } from "../actions";
+import { deleteUserAndScore, updateWinner, getInitialData, endCurrentGame, createNewGame, clearAllGuesses, getAllUsers, resetUserPassword, deleteUser } from "../actions";
 import { useState, useEffect, useCallback } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
 import PlayerCountUpdate from "../components/PlayerCountUpdate";
@@ -17,6 +17,16 @@ interface Player {
   winner?: boolean;
 }
 
+interface User {
+  id: string;
+  name: string | null;
+  email: string | null;
+  createdAt: Date;
+  _count: {
+    guesses: number;
+  };
+}
+
 export default function Page() {
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -26,6 +36,11 @@ export default function Page() {
   const [showNewGameForm, setShowNewGameForm] = useState<boolean>(false);
   const [newGameName, setNewGameName] = useState<string>("");
   const [newGameDate, setNewGameDate] = useState<string>("");
+  
+  // User management state
+  const [users, setUsers] = useState<User[]>([]);
+  const [showPasswordReset, setShowPasswordReset] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +49,10 @@ export default function Page() {
         setPlayers(players);
         setTeamScore(teamScore);
         setTotalPlayers(totalPlayers);
+        
+        // Fetch users for management
+        const allUsers = await getAllUsers();
+        setUsers(allUsers);
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
       } finally {
@@ -141,6 +160,46 @@ export default function Page() {
     }
   };
 
+  const handlePasswordReset = async (userId: string) => {
+    if (!newPassword || newPassword.length < 4) {
+      toast.error("Password must be at least 4 characters long");
+      return;
+    }
+
+    try {
+      await resetUserPassword(userId, newPassword);
+      toast.success("Password reset successfully!");
+      setShowPasswordReset(null);
+      setNewPassword("");
+    } catch (error) {
+      console.error("Failed to reset password:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to reset password: ${errorMessage}`);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    const confirmed = window.confirm(`Are you sure you want to delete user "${userName}"? This will also delete all their guesses and cannot be undone.`);
+    if (confirmed) {
+      try {
+        await deleteUser(userId);
+        toast.success("User deleted successfully!");
+        
+        // Refresh users list
+        const updatedUsers = await getAllUsers();
+        setUsers(updatedUsers);
+        
+        // Also refresh players list in case we deleted someone with guesses
+        const { players: updatedPlayers } = await getInitialData();
+        setPlayers(updatedPlayers);
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+        toast.error(`Failed to delete user: ${errorMessage}`);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container flex flex-col gap-2">
@@ -227,6 +286,97 @@ export default function Page() {
                   Create Game
                 </button>
                 <button onClick={() => setShowNewGameForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Management Section */}
+      <div className="flex flex-col items-center gap-4 w-full max-w-4xl">
+        <h2 className="text-2xl font-bold">User Management</h2>
+        
+        <div className="w-full overflow-x-auto">
+          <table className="min-w-full border border-smokeGray dark:border-white">
+            <thead className="bg-tenOrange text-white">
+              <tr>
+                <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Name</th>
+                <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Email</th>
+                <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Guesses</th>
+                <th className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">Created</th>
+                <th className="py-2 px-4 border-b border-smokeGray dark:border-white">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="text-center">
+                  <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">
+                    {user.name || "No name"}
+                  </td>
+                  <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">
+                    {user.email}
+                  </td>
+                  <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">
+                    {user._count.guesses}
+                  </td>
+                  <td className="py-2 px-4 border-b border-r border-smokeGray dark:border-white">
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-2 px-4 border-b border-smokeGray dark:border-white">
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => setShowPasswordReset(user.id)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600"
+                      >
+                        Reset Password
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.id, user.name || user.email || "Unknown")}
+                        className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Password Reset Modal */}
+      {showPasswordReset && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Reset Password</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-smokeGray">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full p-2 border rounded-lg text-smokeGray"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handlePasswordReset(showPasswordReset)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Reset Password
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPasswordReset(null);
+                    setNewPassword("");
+                  }}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                >
                   Cancel
                 </button>
               </div>

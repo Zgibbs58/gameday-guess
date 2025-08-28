@@ -3,7 +3,9 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUserStats, getUserGuesses } from "../actions";
+import { getUserStats, getUserGuesses, updateUserName } from "../actions";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface UserStats {
   totalGames: number;
@@ -31,6 +33,9 @@ export default function Profile() {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [userGuesses, setUserGuesses] = useState<UserGuess[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [currentName, setCurrentName] = useState("");
 
   useEffect(() => {
     if (status === "loading") return;
@@ -49,6 +54,8 @@ export default function Profile() {
         
         setUserStats(stats);
         setUserGuesses(guesses);
+        setCurrentName(session.user.name || "");
+        setNewName(session.user.name || "");
       } catch (error) {
         console.error("Failed to fetch user data:", error);
       } finally {
@@ -58,6 +65,36 @@ export default function Profile() {
 
     fetchUserData();
   }, [session, status, router]);
+
+  const handleNameUpdate = async () => {
+    if (!newName || newName.trim() === currentName) {
+      setIsEditingName(false);
+      setNewName(currentName);
+      return;
+    }
+
+    try {
+      await updateUserName(newName.trim());
+      setCurrentName(newName.trim());
+      setIsEditingName(false);
+      toast.success("Name updated successfully!");
+      
+      // Update the session name display
+      if (session) {
+        session.user.name = newName.trim();
+      }
+    } catch (error) {
+      console.error("Failed to update name:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to update name: ${errorMessage}`);
+      setNewName(currentName); // Reset to current name on error
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setNewName(currentName);
+    setIsEditingName(false);
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -73,12 +110,64 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <ToastContainer />
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h1 className="text-3xl font-bold text-tenOrange mb-4">
-            Welcome back, {session.user.name}!
-          </h1>
-          <p className="text-smokeGray">{session.user.email}</p>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              {isEditingName ? (
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold text-tenOrange">Welcome back, </h1>
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="text-3xl font-bold text-tenOrange bg-transparent border-b-2 border-tenOrange focus:outline-none"
+                    maxLength={50}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleNameUpdate();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEdit();
+                      }
+                    }}
+                  />
+                  <span className="text-3xl font-bold text-tenOrange">!</span>
+                </div>
+              ) : (
+                <h1 className="text-3xl font-bold text-tenOrange">
+                  Welcome back, {currentName || "User"}!
+                </h1>
+              )}
+              <p className="text-smokeGray mt-2">{session.user.email}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isEditingName ? (
+                <>
+                  <button
+                    onClick={handleNameUpdate}
+                    className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditingName(true)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
+                >
+                  Edit Name
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {userStats ? (

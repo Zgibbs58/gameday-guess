@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { getServerAuthSession } from "@/lib/auth";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,19 @@ export const saveUserGuess = async (formData: FormData, gameId?: string) => {
   
   if (!session?.user) {
     throw new Error("You must be logged in to submit a guess.");
+  }
+
+  // Debug logging for production
+  console.log("Session user ID:", session.user.id);
+  console.log("Session user:", session.user);
+
+  // Verify user exists in database
+  const userExists = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+
+  if (!userExists) {
+    throw new Error(`User with ID ${session.user.id} not found in database. Please sign out and sign in again.`);
   }
 
   const score = parseInt(formData.get("score")?.toString() || "0", 10);
@@ -458,5 +472,109 @@ export const clearAllGuesses = async () => {
   } catch (error) {
     console.error("Error clearing guesses:", error);
     throw new Error(`Failed to clear guesses: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const getAllUsers = async () => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        _count: {
+          select: {
+            guesses: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw new Error(`Failed to fetch users: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const resetUserPassword = async (userId: string, newPassword: string) => {
+  try {
+    if (!newPassword || newPassword.length < 4) {
+      throw new Error("Password must be at least 4 characters long");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: "Password reset successfully!" };
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    throw new Error(`Failed to reset password: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const deleteUser = async (userId: string) => {
+  try {
+    // Delete user's related data first (foreign key constraints)
+    await prisma.guess.deleteMany({
+      where: { userId },
+    });
+    
+    await prisma.userStats.deleteMany({
+      where: { userId },
+    });
+    
+    await prisma.session.deleteMany({
+      where: { userId },
+    });
+    
+    await prisma.account.deleteMany({
+      where: { userId },
+    });
+
+    // Finally delete the user
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { message: "User deleted successfully!" };
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    throw new Error(`Failed to delete user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const updateUserName = async (newName: string) => {
+  try {
+    const session = await getServerAuthSession();
+    
+    if (!session?.user) {
+      throw new Error("You must be logged in to update your name.");
+    }
+
+    if (!newName || newName.trim().length === 0) {
+      throw new Error("Name cannot be empty.");
+    }
+
+    if (newName.trim().length > 50) {
+      throw new Error("Name must be 50 characters or less.");
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { name: newName.trim() },
+    });
+
+    return { message: "Name updated successfully!" };
+  } catch (error) {
+    console.error("Error updating user name:", error);
+    throw new Error(`Failed to update name: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
