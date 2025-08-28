@@ -7,6 +7,7 @@ interface Player {
   name: string;
   score: number;
   winner?: boolean;
+  isEliminated?: boolean;
 }
 
 interface PlayerTableProps {
@@ -76,7 +77,7 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
                 <>
                   <td className="relative py-2 px-4 text-lg font-semibold border-b border-r border-smokeGray dark:border-white bg-green-500 text-white">
                     {player.name}
-                    <span className="absolute top-1/2 -right-4 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-95 pointer-events-none winner-text">
+                    <span className="absolute top-1/2 -right-4 transform -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-95 pointer-events-none winner-text">
                       Winner
                     </span>
                   </td>
@@ -84,12 +85,12 @@ const PlayerTable: React.FC<PlayerTableProps & TeamScoreProps> = ({ players, tea
                     {player.score}
                   </td>
                 </>
-              ) : player.score < teamScore ? (
+              ) : player.isEliminated || player.score < teamScore ? (
                 <>
                   <td className="relative py-2 px-4 text-lg font-semibold border-b border-r border-smokeGray dark:border-white bg-red-500 text-white">
                     {player.name}
-                    <span className="absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-80 pointer-events-none">
-                      Loser
+                    <span className="absolute top-1/2 left-4 transform -translate-y-1/2 rotate-[8deg] text-4xl font-bold text-smokeGray opacity-80 pointer-events-none">
+                      Eliminated
                     </span>
                   </td>
                   <td className="py-2 px-4 text-lg font-semibold border-b border-smokeGray dark:border-white bg-red-500 text-white">

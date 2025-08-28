@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
 import { Noto_Serif_Armenian } from "next/font/google";
 import { updateGameTimer } from "../actions";
+import { useGameStore } from "@/context/GameContext";
 
 const serif = Noto_Serif_Armenian({ subsets: ["latin"] });
 
 export default function GameTimer({ targetDate, isActive }: { targetDate: Date; isActive: boolean }) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const { setGameStarted: setGlobalGameStarted, startScorePolling } = useGameStore();
 
   useEffect(() => {
     if (!targetDate || gameStarted) return;
@@ -18,7 +20,9 @@ export default function GameTimer({ targetDate, isActive }: { targetDate: Date; 
 
     if (now.getTime() >= targetDate.getTime()) {
       setTimeLeft(0);
-      setGameStarted(true); // Set game as started
+      setGameStarted(true); // Set local game as started
+      setGlobalGameStarted(true); // Set global game as started
+      startScorePolling(); // Start polling for score updates
 
       // If the game time has passed and isActive is still true, update it to false
       if (isActive) {
@@ -40,7 +44,9 @@ export default function GameTimer({ targetDate, isActive }: { targetDate: Date; 
       if (difference <= 0) {
         clearInterval(interval); // Stop the timer
         setTimeLeft(0);
-        setGameStarted(true); // Mark the game as started
+        setGameStarted(true); // Mark the local game as started
+        setGlobalGameStarted(true); // Set global game as started
+        startScorePolling(); // Start polling for score updates
 
         // If the game time has passed and isActive is still true, update it to false
         if (isActive) {

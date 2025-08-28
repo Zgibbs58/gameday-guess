@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteUserAndScore, updateWinner, getInitialData } from "../actions";
+import { deleteUserAndScore, updateWinner, getInitialData, endCurrentGame, createNewGame, clearAllGuesses } from "../actions";
 import { useState, useEffect, useCallback } from "react";
 import TeamScoreUpdate from "../components/TeamScoreUpdate";
 import PlayerCountUpdate from "../components/PlayerCountUpdate";
@@ -8,6 +8,7 @@ import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GameTimerUpdate from "../components/GameTimerUpdate";
+import { useGameStore } from "@/context/GameContext";
 
 interface Player {
   name: string;
@@ -21,6 +22,10 @@ export default function Page() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [teamScore, setTeamScore] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const { setGameEnded, gameEnded, fetchInitialData } = useGameStore();
+  const [showNewGameForm, setShowNewGameForm] = useState<boolean>(false);
+  const [newGameName, setNewGameName] = useState<string>("");
+  const [newGameDate, setNewGameDate] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,11 +64,80 @@ export default function Page() {
     setPlayers((prevPlayers) => prevPlayers.map((player) => (player.id === id ? { ...player, winner: !player.winner } : player)));
     try {
       await updateWinner(id);
+
+      // If making someone a winner, end the game
+      const player = players.find((p) => p.id === id);
+      if (player && !player.winner) {
+        setGameEnded(true);
+        toast.success(`${player.name} is now the winner! Game ended.`);
+      }
     } catch (error) {
       console.error("Failed to toggle winner:", error);
       // Revert winner status if update fails
       setPlayers((prevPlayers) => prevPlayers.map((player) => (player.id === id ? { ...player, winner: !player.winner } : player)));
-      window.alert("Failed to toggle winner.");
+      toast.error("Failed to toggle winner.");
+    }
+  };
+
+  const handleEndGame = async () => {
+    const confirmed = window.confirm("Are you sure you want to end the current game?");
+    if (confirmed) {
+      try {
+        await endCurrentGame(teamScore);
+        setGameEnded(true);
+        toast.success("Game ended successfully!");
+      } catch (error) {
+        console.error("Failed to end game:", error);
+        toast.error("Failed to end game.");
+      }
+    }
+  };
+
+  const handleCreateNewGame = async () => {
+    if (!newGameName || !newGameDate) {
+      toast.error("Please fill in all fields for the new game.");
+      return;
+    }
+
+    try {
+      const result = await createNewGame(newGameName, newGameDate);
+      setGameEnded(false);
+      setShowNewGameForm(false);
+      setNewGameName("");
+      setNewGameDate("");
+      toast.success(result.message);
+
+      // Refresh both local and global state
+      await fetchInitialData();
+      const { players: updatedPlayers, teamScore: updatedScore, totalPlayers: updatedTotal } = await getInitialData();
+      setPlayers(updatedPlayers);
+      setTeamScore(updatedScore);
+      setTotalPlayers(updatedTotal);
+      
+    } catch (error) {
+      console.error("Failed to create new game:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Failed to create new game: ${errorMessage}`);
+    }
+  };
+
+  const handleClearAllGuesses = async () => {
+    const confirmed = window.confirm("Are you sure you want to clear all player guesses? This cannot be undone.");
+    if (confirmed) {
+      try {
+        await clearAllGuesses();
+        toast.success("All guesses cleared successfully!");
+        
+        // Refresh the data to show empty list
+        const { players: updatedPlayers, teamScore: updatedScore, totalPlayers: updatedTotal } = await getInitialData();
+        setPlayers(updatedPlayers);
+        setTeamScore(updatedScore);
+        setTotalPlayers(updatedTotal);
+      } catch (error) {
+        console.error("Failed to clear guesses:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+        toast.error(`Failed to clear guesses: ${errorMessage}`);
+      }
     }
   };
 
@@ -101,6 +175,66 @@ export default function Page() {
           </div>
         ))}
       </div>
+
+      {/* Game Management Controls */}
+      <div className="flex flex-col items-center gap-4">
+        <h2 className="text-2xl font-bold">Game Management</h2>
+
+        {!gameEnded ? (
+          <button onClick={handleEndGame} className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700">
+            End Current Game
+          </button>
+        ) : (
+          <div className="text-green-600 font-semibold">Game Ended</div>
+        )}
+
+        <button onClick={() => setShowNewGameForm(true)} className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+          Create New Game
+        </button>
+        
+        <button onClick={handleClearAllGuesses} className="bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-yellow-700">
+          Clear All Guesses
+        </button>
+      </div>
+
+      {/* New Game Form Modal */}
+      {showNewGameForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-xl font-bold mb-4">Create New Game</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-smokeGray">Game Name</label>
+                <input
+                  type="text"
+                  value={newGameName}
+                  onChange={(e) => setNewGameName(e.target.value)}
+                  placeholder="e.g., Tennessee vs Alabama"
+                  className="w-full p-2 border rounded-lg text-smokeGray"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-smokeGray">Game Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={newGameDate}
+                  onChange={(e) => setNewGameDate(e.target.value)}
+                  className="w-full p-2 border rounded-lg text-smokeGray"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleCreateNewGame} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                  Create Game
+                </button>
+                <button onClick={() => setShowNewGameForm(false)} className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TeamScoreUpdate teamScore={teamScore} />
       <PlayerCountUpdate totalPlayers={totalPlayers} />
       <GameTimerUpdate />

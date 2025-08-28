@@ -23,7 +23,7 @@ const ParentComponent = () => {
   // const [players, setPlayers] = useState<Player[]>([]);
   // const [teamScore, setTeamScore] = useState<number>(0);
   // const [loading, setLoading] = useState<boolean>(true);
-  const { players, teamScore, totalPlayers, loading, gameTimer, fetchInitialData, updatePlayers } = useGameStore();
+  const { players, teamScore, totalPlayers, loading, gameTimer, gameStarted, gameEnded, fetchInitialData, updatePlayers } = useGameStore();
   const [showScoreAlert, setShowScoreAlert] = useState<boolean>(false);
   const [newScore, setNewScore] = useState<number | null>(null);
   const [firstLoad, setFirstLoad] = useState<boolean>(true); // Track first load
@@ -129,15 +129,21 @@ const ParentComponent = () => {
   return (
     <>
       <div className="flex flex-col gap-8">
-        {/* TODO fix the timer to not reset after a new day */}
-        {gameTimer.isActive && <GameTimer isActive={gameTimer.isActive} targetDate={gameTimer.targetDate} />}
-        {players.length >= totalPlayers || !gameTimer.isActive ? null : <UserForm onAddPlayer={handleAddPlayer} />}
-        {players.length === 0 ? null : players.length >= totalPlayers || !gameTimer.isActive ? (
+        {/* Show timer only during guessing phase */}
+        {gameTimer.isActive && !gameStarted && <GameTimer isActive={gameTimer.isActive} targetDate={gameTimer.targetDate} />}
+        
+        {/* Show UserForm only if game hasn't started and timer is active (guessing phase) */}
+        {!gameStarted && gameTimer.isActive && <UserForm onAddPlayer={handleAddPlayer} />}
+        
+        {/* Show different content based on game state */}
+        {gameStarted ? (
           <PlayerTable players={players} teamScore={teamScore} />
-        ) : (
+        ) : players.length > 0 ? (
           <div>
             <h2 className="text-2xl text-tenOrange text-center mb-2">
-              Waiting on {playersNeeded} More Player{playersNeeded > 1 ? "s" : ""}
+              {totalPlayers > 0 && players.length < totalPlayers 
+                ? `Waiting on ${playersNeeded} More Player${playersNeeded > 1 ? "s" : ""}` 
+                : `${players.length} Player${players.length > 1 ? "s" : ""} Locked In`}
             </h2>
             <ul className="text-center">
               {players.map((player, index) => (
@@ -145,13 +151,12 @@ const ParentComponent = () => {
                   <span className="text-tenOrange font-semibold">{player.name}</span> is locked in
                 </li>
               ))}
-              {/* {Array.from({ length: playersNeeded }).map((_, index) => (
-              <li key={`playersNeeded-${index}`}>????</li>
-            ))} */}
             </ul>
           </div>
-        )}
-        {!gameTimer.isActive && (
+        ) : null}
+        
+        {/* Show scoreboard when game has started */}
+        {gameStarted && (
           <div className="flex flex-col items-center shadow-2xl">
             {/* Stadium Header */}
             <h3 className="relative text-lg font-extrabold text-center bg-tenOrange px-4 text-white rounded-t-lg border border-b-1 dark:border-smokeGray">
@@ -159,7 +164,9 @@ const ParentComponent = () => {
             </h3>
             {/* Score Box */}
             <div className="bg-tenOrange rounded-lg p-6 text-center text-white border-white">
-              <h3 className="text-3xl font-bold mb-6 uppercase tracking-wider">Current Score</h3>
+              <h3 className="text-3xl font-bold mb-6 uppercase tracking-wider">
+                {gameEnded ? "FINAL SCORE" : "CURRENT SCORE"}
+              </h3>
 
               {/* Animated Border with Tracing Effect */}
               <div className="relative flex justify-center items-center">
@@ -170,6 +177,12 @@ const ParentComponent = () => {
                   <div className="absolute rounded-lg pointer-events-none"></div>
                 </div>
               </div>
+              
+              {gameEnded && (
+                <div className="mt-4">
+                  <h2 className="text-4xl font-bold animate-pulse">GAME OVER 🎉</h2>
+                </div>
+              )}
             </div>
 
             {/* Styles for Tracing Border */}

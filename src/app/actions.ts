@@ -299,20 +299,23 @@ export const updateWinner = async (id: number) => {
 };
 
 export const updateGameTimer = async (targetDateUTC: string, isActive: boolean) => {
+  // Ensure the date string is properly formatted for Prisma
+  const targetDate = new Date(targetDateUTC).toISOString();
+  
   const gameTimer = await prisma.gameTimer.findFirst();
 
   if (!gameTimer) {
     await prisma.gameTimer.create({
       data: {
-        targetDate: targetDateUTC,
+        targetDate: targetDate,
         isActive: isActive,
       },
     });
   } else {
     await prisma.gameTimer.update({
-      where: { id: 1 },
+      where: { id: gameTimer.id }, // Use the actual ID instead of hardcoded 1
       data: {
-        targetDate: targetDateUTC,
+        targetDate: targetDate,
         isActive: isActive,
       },
     });
@@ -367,4 +370,93 @@ export const getUserGuesses = async (userId: string, limit = 10) => {
     gameId: guess.gameId,
     createdAt: guess.createdAt,
   }));
+};
+
+export const endCurrentGame = async (finalScore: number) => {
+  // Update the team score to final score
+  await updateScore(finalScore);
+  
+  // Mark current game as ended
+  await prisma.games.updateMany({
+    where: { isCurrent: true },
+    data: { 
+      game_ended: true,
+      final_score: finalScore 
+    }
+  });
+  
+  // Set game timer to inactive
+  await updateGameTimer(new Date().toISOString(), false);
+  
+  return { message: "Game ended successfully!", finalScore };
+};
+
+export const createNewGame = async (name: string, targetDate: string) => {
+  try {
+    // Archive current game by setting isCurrent to false for all games
+    await prisma.games.updateMany({
+      where: { isCurrent: true },
+      data: { isCurrent: false }
+    });
+    
+    // Parse and validate the target date
+    // datetime-local format: "2025-08-27T22:54" needs to be converted to full ISO
+    let gameDate: Date;
+    
+    if (targetDate.includes('T') && !targetDate.includes(':00')) {
+      // Add seconds if missing from datetime-local input
+      gameDate = new Date(targetDate + ':00');
+    } else {
+      gameDate = new Date(targetDate);
+    }
+    
+    if (isNaN(gameDate.getTime())) {
+      throw new Error("Invalid date format provided");
+    }
+    
+    // Create new game
+    const newGame = await prisma.games.create({
+      data: {
+        id: `game_${Date.now()}`,
+        name,
+        targetDate: gameDate,
+        isActive: false,
+        isCurrent: true,
+        game_started: false,
+        game_ended: false,
+      },
+    });
+    
+    // Clear all existing guesses from previous games
+    await prisma.guess.deleteMany({
+      where: {
+        gameId: null, // Clear guesses not associated with specific games
+      },
+    });
+    
+    // Reset team score
+    await updateScore(0);
+    
+    // Set game timer to active so it shows on main page
+    await updateGameTimer(gameDate.toISOString(), true);
+    
+    return { message: "New game created successfully!", gameId: newGame.id };
+  } catch (error) {
+    console.error("Error creating new game:", error);
+    throw new Error(`Failed to create new game: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const clearAllGuesses = async () => {
+  try {
+    await prisma.guess.deleteMany({
+      where: {
+        gameId: null, // Only clear guesses not associated with specific archived games
+      },
+    });
+    return { message: "All guesses cleared successfully!" };
+  } catch (error) {
+    console.error("Error clearing guesses:", error);
+    throw new Error(`Failed to clear guesses: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 };
