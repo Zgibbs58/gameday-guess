@@ -2,11 +2,17 @@ import { useState } from "react";
 import { updateGameTimer } from "../actions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { zonedTimeToUtc } from "date-fns-tz";
 
-// Function to convert to readable date format
+// Function to convert Central Time (Nashville) to UTC for storage
 const convertToDate = (year: number, month: number, day: number, hour: number, minute: number) => {
-  const cdtDate = new Date(year, month - 1, day, hour, minute); // Create date object
-  return cdtDate.toISOString(); // return in ISO format
+  // Create a date in Central Time (handles both CDT and CST automatically)
+  const centralTimeZone = "America/Chicago";
+  const localDate = new Date(year, month - 1, day, hour, minute);
+  
+  // Convert Central Time to UTC
+  const utcDate = zonedTimeToUtc(localDate, centralTimeZone);
+  return utcDate.toISOString();
 };
 
 export default function GameTimerUpdate() {

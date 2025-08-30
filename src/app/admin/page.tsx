@@ -273,13 +273,14 @@ export default function Page() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-smokeGray">Game Date & Time</label>
+                <label className="block text-sm font-medium mb-1 text-smokeGray">Game Date & Time (Central Time)</label>
                 <input
                   type="datetime-local"
                   value={newGameDate}
                   onChange={(e) => setNewGameDate(e.target.value)}
                   className="w-full p-2 border rounded-lg text-smokeGray"
                 />
+                <small className="text-xs text-gray-500">Enter time in Central Time (Nashville time)</small>
               </div>
               <div className="flex gap-2">
                 <button onClick={handleCreateNewGame} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">

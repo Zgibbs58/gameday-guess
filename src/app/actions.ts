@@ -7,80 +7,85 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 export const saveUserGuess = async (formData: FormData, gameId?: string) => {
-  const session = await getServerAuthSession();
-  
-  if (!session?.user) {
-    throw new Error("You must be logged in to submit a guess.");
+  try {
+    const session = await getServerAuthSession();
+    
+    if (!session?.user) {
+      return { error: "You must be logged in to submit a guess." };
+    }
+
+    // Debug logging for production
+    console.log("Session user ID:", session.user.id);
+    console.log("Session user:", session.user);
+
+    // Verify user exists in database
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!userExists) {
+      return { error: `User with ID ${session.user.id} not found in database. Please sign out and sign in again.` };
+    }
+
+    const score = parseInt(formData.get("score")?.toString() || "0", 10);
+    
+    if (isNaN(score)) {
+      return { error: "Score is required." };
+    }
+
+    // Check if the score has already been used for this game
+    const existingGuessWithScore = await prisma.guess.findFirst({
+      where: { 
+        score,
+        gameId: gameId || null,
+      },
+    });
+
+    if (existingGuessWithScore) {
+      return { error: `Score ${score} is already in use for this game. Please choose a different number.` };
+    }
+
+    // Check if user already has a guess for this game
+    const existingUserGuess = await prisma.guess.findFirst({
+      where: {
+        userId: session.user.id,
+        gameId: gameId || null,
+      },
+    });
+
+    if (existingUserGuess) {
+      return { error: "You have already submitted a guess for this game." };
+    }
+
+    // Create the guess
+    const guess = await prisma.guess.create({
+      data: {
+        userId: session.user.id,
+        score,
+        gameId: gameId || null,
+      },
+    });
+
+    // Update user stats
+    await prisma.userStats.upsert({
+      where: { userId: session.user.id },
+      update: {
+        totalGames: { increment: 1 },
+        lastPlayed: new Date(),
+      },
+      create: {
+        userId: session.user.id,
+        totalGames: 1,
+        totalWins: 0,
+        lastPlayed: new Date(),
+      },
+    });
+
+    return { success: true, message: "Guess submitted successfully!", guessId: guess.id };
+  } catch (error) {
+    console.error("Error in saveUserGuess:", error);
+    return { error: "An unexpected error occurred. Please try again." };
   }
-
-  // Debug logging for production
-  console.log("Session user ID:", session.user.id);
-  console.log("Session user:", session.user);
-
-  // Verify user exists in database
-  const userExists = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  });
-
-  if (!userExists) {
-    throw new Error(`User with ID ${session.user.id} not found in database. Please sign out and sign in again.`);
-  }
-
-  const score = parseInt(formData.get("score")?.toString() || "0", 10);
-  
-  if (isNaN(score)) {
-    throw new Error("Score is required.");
-  }
-
-  // Check if the score has already been used for this game
-  const existingGuessWithScore = await prisma.guess.findFirst({
-    where: { 
-      score,
-      gameId: gameId || null,
-    },
-  });
-
-  if (existingGuessWithScore) {
-    throw new Error(`Score ${score} is already in use for this game.`);
-  }
-
-  // Check if user already has a guess for this game
-  const existingUserGuess = await prisma.guess.findFirst({
-    where: {
-      userId: session.user.id,
-      gameId: gameId || null,
-    },
-  });
-
-  if (existingUserGuess) {
-    throw new Error("You have already submitted a guess for this game.");
-  }
-
-  // Create the guess
-  const guess = await prisma.guess.create({
-    data: {
-      userId: session.user.id,
-      score,
-      gameId: gameId || null,
-    },
-  });
-
-  // Update user stats
-  await prisma.userStats.upsert({
-    where: { userId: session.user.id },
-    update: {
-      totalGames: { increment: 1 },
-      lastPlayed: new Date(),
-    },
-    create: {
-      userId: session.user.id,
-      totalGames: 1,
-      totalWins: 0,
-      lastPlayed: new Date(),
-    },
-  });
-
-  return { message: "Guess submitted successfully!", guessId: guess.id };
 };
 
 // Legacy function for backward compatibility
@@ -417,9 +422,18 @@ export const createNewGame = async (name: string, targetDate: string) => {
     // datetime-local format: "2025-08-27T22:54" needs to be converted to full ISO
     let gameDate: Date;
     
-    if (targetDate.includes('T') && !targetDate.includes(':00')) {
+    if (targetDate.includes('T')) {
       // Add seconds if missing from datetime-local input
-      gameDate = new Date(targetDate + ':00');
+      const dateTimeString = targetDate.includes(':00') ? targetDate : targetDate + ':00';
+      
+      // Treat the input as Central Time and convert to UTC
+      // Import zonedTimeToUtc at the top of the file if not already imported
+      const { zonedTimeToUtc } = await import("date-fns-tz");
+      const centralTimeZone = "America/Chicago";
+      
+      // Parse as if it's in Central Time
+      const localDate = new Date(dateTimeString);
+      gameDate = zonedTimeToUtc(localDate, centralTimeZone);
     } else {
       gameDate = new Date(targetDate);
     }

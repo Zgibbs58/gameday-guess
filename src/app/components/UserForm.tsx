@@ -36,12 +36,18 @@ export default function UserForm({ onAddPlayer }: PlayerFormProps) {
     try {
       const formData = new FormData(e.currentTarget);
       formData.append("score", score);
-      await saveUserAndScore(formData);
-      toast.success("Guess submitted successfully!");
-      onAddPlayer({ name: session.user.name || "Anonymous", score: Number(score) });
-      setScore("");
+      const result = await saveUserAndScore(formData);
+      
+      if (result.error) {
+        toast.error(result.error);
+      } else if (result.success) {
+        toast.success(result.message || "Guess submitted successfully!");
+        onAddPlayer({ name: session.user.name || "Anonymous", score: Number(score) });
+        setScore("");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Failed to submit guess. Try using a different score.");
+      console.error("Unexpected error in form submission:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
