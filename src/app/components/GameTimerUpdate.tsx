@@ -2,7 +2,7 @@ import { useState } from "react";
 import { updateGameTimer } from "../actions";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { zonedTimeToUtc } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 // Function to convert Central Time (Nashville) to UTC for storage
 const convertToDate = (year: number, month: number, day: number, hour: number, minute: number) => {
@@ -11,7 +11,7 @@ const convertToDate = (year: number, month: number, day: number, hour: number, m
   const localDate = new Date(year, month - 1, day, hour, minute);
   
   // Convert Central Time to UTC
-  const utcDate = zonedTimeToUtc(localDate, centralTimeZone);
+  const utcDate = fromZonedTime(localDate, centralTimeZone);
   return utcDate.toISOString();
 };
 

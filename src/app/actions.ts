@@ -427,13 +427,13 @@ export const createNewGame = async (name: string, targetDate: string) => {
       const dateTimeString = targetDate.includes(':00') ? targetDate : targetDate + ':00';
       
       // Treat the input as Central Time and convert to UTC
-      // Import zonedTimeToUtc at the top of the file if not already imported
-      const { zonedTimeToUtc } = await import("date-fns-tz");
+      // Import fromZonedTime at the top of the file if not already imported
+      const { fromZonedTime } = await import("date-fns-tz");
       const centralTimeZone = "America/Chicago";
       
       // Parse as if it's in Central Time
       const localDate = new Date(dateTimeString);
-      gameDate = zonedTimeToUtc(localDate, centralTimeZone);
+      gameDate = fromZonedTime(localDate, centralTimeZone);
     } else {
       gameDate = new Date(targetDate);
     }
